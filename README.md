@@ -48,3 +48,17 @@ Sigue los siguientes pasos para correr el proyecto en tu entorno local:
     ```
 
 5. Accede a la aplicación en tu navegador en `http://localhost:3000`.
+
+## Proyecto en Producción
+
+Puedes acceder a la versión desplegada del proyecto en el siguiente enlace:
+
+[**Ver Proyecto en Producción**](https://dominio.com)  
+
+---
+
+### Acceso mediante Código QR
+
+Próximamente, podrás acceder al proyecto escaneando este código QR:
+
+![Código QR Placeholder](https://via.placeholder.com/150x150.png?text=QR+Code)
