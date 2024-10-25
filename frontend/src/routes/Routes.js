@@ -20,9 +20,10 @@ const AppRoutes = () => {
       <Route
         path="/nueva-orden"
         element={
-          <PrivateRoute>
-            <NuevaOrden />
-          </PrivateRoute>
+          //<PrivateRoute>
+          //<NuevaOrden />
+          //</PrivateRoute>
+          <NuevaOrden />
         }
       />
       <Route path="/" element={<Navigate to="/login" />} />
