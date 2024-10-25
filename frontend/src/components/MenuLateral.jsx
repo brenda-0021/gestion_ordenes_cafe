@@ -1,77 +1,137 @@
 "use client";
 
-import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  HomeIcon,
+  ClipboardDocumentIcon,
+  CogIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  Bars3Icon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
 const MenuLateral = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const handleNavigate = (path) => {
-    navigate(path);
-  };
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkIsMobile);
+    };
+  }, []);
 
   const menuItems = [
-    { name: "Order Board", icon: "fas fa-clipboard", href: "/order-board" },
+    { name: "Tablero", icon: HomeIcon, path: "/" },
     {
-      name: "Create New Order",
-      icon: "fas fa-plus-square",
-      href: "/new-order",
-    }, // PlusSquare icon
-    { name: "Settings", icon: "fas fa-cog", href: "/settings" },
-    { name: "Log Out", icon: "fas fa-sign-out-alt", href: "/logout" },
+      name: "Crear Nueva Orden",
+      icon: ClipboardDocumentIcon,
+      path: "/nueva-orden",
+    },
+    { name: "Ajustes", icon: CogIcon, path: "/settings" },
+    { name: "Cerrar Sesión", icon: CogIcon, path: "/logout" },
   ];
 
+  const toggleMenu = () => {
+    if (!isMobile) {
+      setIsCollapsed(!isCollapsed);
+    }
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <div
-      className={`fixed left-0 top-0 h-full bg-cafe-oscuro text-white transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-16" : "w-64"
-      }`}
-    >
+    <>
+      {/* Botón de hamburguesa solo para dispositivos móviles */}
       <button
-        className="absolute -right-3 top-9 bg-cafe-oscuro text-white p-1 rounded-full"
-        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="sm:hidden fixed top-4 left-4 z-50 p-2 bg-cafe-medio text-cafe-suave rounded-md"
+        onClick={toggleMobileMenu}
       >
-        {isCollapsed ? "→" : "←"}
+        {isMobileMenuOpen ? (
+          <XMarkIcon className="h-6 w-6" />
+        ) : (
+          <Bars3Icon className="h-6 w-6" />
+        )}
       </button>
-      <div className="p-4">
-        <h1
-          className={`text-2xl font-bold mb-6 ${
-            isCollapsed ? "hidden" : "block"
-          }`}
-        >
-          Café Menu
-        </h1>
-        <nav>
-          <ul className="space-y-2">
-            {menuItems.map((item) => (
-              <li key={item.name}>
-                <Link href={item.href} passHref>
-                  <div
-                    className={`flex items-center p-2 rounded-md transition-colors duration-200 ${
-                      pathname === item.href
-                        ? "bg-cafe-medio"
-                        : "hover:bg-cafe-medio"
-                    }`}
-                  >
-                    <i
-                      className={`${item.icon} h-6 w-6`}
-                      aria-hidden="true"
-                    ></i>
-                    <span
-                      className={`ml-3 ${isCollapsed ? "hidden" : "block"}`}
-                    >
-                      {item.name}
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+
+      {/* Menú lateral */}
+      <div
+        className={`fixed top-0 left-0 h-full bg-cafe-oscuro text-cafe-suave transition-all duration-300 ease-in-out
+          ${isCollapsed && !isMobile ? "w-16" : "w-64"}
+          ${
+            isMobile
+              ? isMobileMenuOpen
+                ? "translate-x-0"
+                : "-translate-x-full"
+              : "translate-x-0"
+          }
+          z-40`}
+      >
+        <div className="flex items-center justify-between p-4">
+          <h1
+            className={`text-2xl ml-auto pr-4 ${
+              isCollapsed && !isMobile ? "hidden" : "block"
+            }`}
+          >
+            Menu
+          </h1>
+          {!isMobile && (
+            <button
+              onClick={toggleMenu}
+              className="text-cafe-suave hover:text-cafe-claro"
+            >
+              {isCollapsed ? (
+                <ArrowRightIcon className="h-6 w-6" />
+              ) : (
+                <ArrowLeftIcon className="h-6 w-6" />
+              )}
+            </button>
+          )}
+        </div>
+
+        <ul className="mt-8 space-y-4">
+          {menuItems.map((item) => (
+            <li
+              key={item.name}
+              className="px-4 py-2 hover:bg-cafe-medio rounded-lg transition-colors duration-200"
+            >
+              <Link
+                to={item.path}
+                className="flex items-center space-x-2"
+                onClick={() => isMobile && toggleMobileMenu()}
+              >
+                <item.icon className="h-6 w-6" />
+                <span
+                  className={`${isCollapsed && !isMobile ? "hidden" : "block"}`}
+                >
+                  {item.name}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
-    </div>
+
+      {/* Fondo para cerrar el menú móvil al hacer clic fuera */}
+      {isMobile && isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={toggleMobileMenu}
+        ></div>
+      )}
+    </>
   );
 };
+
 export default MenuLateral;

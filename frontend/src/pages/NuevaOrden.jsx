@@ -78,7 +78,7 @@ export default function NuevaOrden() {
 
   return (
     <div className="min-h-screen bg-cafe-suave p-4 md:p-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+      <div className="mx-auto bg-white rounded-lg shadow-md p-6">
         <h1 className="text-3xl font-bold text-cafe-oscuro mb-6">
           Nueva Orden
         </h1>
