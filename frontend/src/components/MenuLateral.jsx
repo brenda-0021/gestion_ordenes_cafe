@@ -4,23 +4,23 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const MenuLateral = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false); // Estado de colapso
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
-  const { pathname } = useLocation(); // Obtener la ruta actual
+  const { pathname } = useLocation();
 
   const handleNavigate = (path) => {
     navigate(path);
   };
 
   const menuItems = [
-    { name: "Order Board", icon: "fas fa-clipboard", href: "/order-board" }, // Clipboard icon
+    { name: "Order Board", icon: "fas fa-clipboard", href: "/order-board" },
     {
       name: "Create New Order",
       icon: "fas fa-plus-square",
       href: "/new-order",
     }, // PlusSquare icon
-    { name: "Settings", icon: "fas fa-cog", href: "/settings" }, // Settings icon
-    { name: "Log Out", icon: "fas fa-sign-out-alt", href: "/logout" }, // LogOut icon
+    { name: "Settings", icon: "fas fa-cog", href: "/settings" },
+    { name: "Log Out", icon: "fas fa-sign-out-alt", href: "/logout" },
   ];
 
   return (
