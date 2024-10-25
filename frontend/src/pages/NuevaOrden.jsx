@@ -11,10 +11,22 @@ export default function NuevaOrden() {
   const [orderStatus, setOrderStatus] = useState("activated");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [invoice, setInvoice] = useState("no");
+  const [isSideMenuVisible, setIsSideMenuVisible] = useState(true);
 
   useEffect(() => {
     const simulatedWaiterName = "Juan Pérez";
     setWaiterName(simulatedWaiterName);
+
+    const checkSideMenuVisibility = () => {
+      setIsSideMenuVisible(window.innerWidth >= 640);
+    };
+
+    checkSideMenuVisibility();
+    window.addEventListener("resize", checkSideMenuVisibility);
+
+    return () => {
+      window.removeEventListener("resize", checkSideMenuVisibility);
+    };
   }, []);
 
   const addOrderItem = () => {
@@ -77,7 +89,11 @@ export default function NuevaOrden() {
   };
 
   return (
-    <div className="min-h-screen bg-cafe-suave p-4 md:p-8">
+    <div
+      className={`min-h-screen bg-cafe-suave p-4 md:p-8 ${
+        isSideMenuVisible ? "sm:ml-16 lg:ml-64" : ""
+      }`}
+    >
       <div className="mx-auto bg-white rounded-lg shadow-md p-6">
         <h1 className="text-3xl font-bold text-cafe-oscuro mb-6">
           Nueva Orden
@@ -128,7 +144,7 @@ export default function NuevaOrden() {
           </p>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 overflow-x-auto">
           <h2 className="text-xl font-semibold text-cafe-oscuro mb-2">
             Productos
           </h2>
@@ -210,7 +226,7 @@ export default function NuevaOrden() {
           </table>
           <button
             onClick={addOrderItem}
-            className="mt-4 px-4 py-2 bg-cafe-medio text-white rounded-md hover:bg-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso"
+            className="mt-4 px-4 py-2 bg-cafe-medio text-white rounded-md hover:bg-cafe-oscuro focus:outline-none"
           >
             Nuevo Producto
           </button>
