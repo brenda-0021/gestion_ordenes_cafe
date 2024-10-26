@@ -4,6 +4,7 @@ import Login from "../pages/Login.jsx";
 import Principal from "../pages/Principal.jsx";
 import NuevaOrden from "../pages/NuevaOrden.jsx";
 import PrivateRoute from "./PrivateRoute.js";
+import DashboardGerente from "../pages/DashboardGerente.jsx";
 
 const AppRoutes = () => {
   return (
@@ -24,6 +25,15 @@ const AppRoutes = () => {
           //<NuevaOrden />
           //</PrivateRoute>
           <NuevaOrden />
+        }
+      />
+      <Route
+        path="/dashboard-gerente"
+        element={
+          //<PrivateRoute>
+          //<DashboardGerente />
+          //</PrivateRoute>
+          <DashboardGerente />
         }
       />
       <Route path="/" element={<Navigate to="/login" />} />

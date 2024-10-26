@@ -73,6 +73,8 @@ export default function NuevaOrden() {
     "A2",
     "A3",
     "A4",
+    "A5",
+    "A6",
   ];
 
   const getStatusColor = (status) => {
