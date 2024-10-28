@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { TrashIcon, PlusIcon, MinusIcon } from "@heroicons/react/24/solid";
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
+import { db } from "../credenciales";
 
 export default function NuevaOrden() {
   const [orderItems, setOrderItems] = useState([]);
@@ -12,10 +15,19 @@ export default function NuevaOrden() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [invoice, setInvoice] = useState("no");
   const [isSideMenuVisible, setIsSideMenuVisible] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
-    const simulatedWaiterName = "Juan Pérez";
-    setWaiterName(simulatedWaiterName);
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      const email = user.email;
+      const firstName = email.split("@")[0];
+      setWaiterName(firstName.charAt(0).toUpperCase() + firstName.slice(1));
+    }
 
     const checkSideMenuVisibility = () => {
       setIsSideMenuVisible(window.innerWidth >= 640);
@@ -29,15 +41,50 @@ export default function NuevaOrden() {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsCollection = collection(db, "productos");
+        const productsSnapshot = await getDocs(productsCollection);
+        const productsList = productsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          name: doc.data().nombre,
+          price: doc.data().precio,
+        }));
+        setProducts(productsList);
+      } catch (error) {
+        console.error("Error al obtener productos: ", error);
+        alert("No se pudieron cargar los productos. Intenta nuevamente.");
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const addOrderItem = () => {
-    setOrderItems([
-      ...orderItems,
-      { quantity: 1, name: "", details: "", price: 0 },
-    ]);
+    if (selectedProduct) {
+      setOrderItems([
+        ...orderItems,
+        {
+          quantity: 1,
+          name: selectedProduct.name,
+          details: "",
+          price: selectedProduct.price,
+        },
+      ]);
+      setSelectedProduct(null);
+      setIsModalVisible(false);
+    }
   };
 
   const updateOrderItem = (index, field, value) => {
     const newOrderItems = [...orderItems];
+    if (field === "quantity" && (parseInt(value) <= 0 || isNaN(value))) {
+      return;
+    }
+    if (field === "price" && parseFloat(value) < 0) {
+      return;
+    }
     newOrderItems[index][field] = value;
     setOrderItems(newOrderItems);
   };
@@ -58,8 +105,52 @@ export default function NuevaOrden() {
 
   const calculateTotal = () => {
     return orderItems
-      .reduce((total, item) => total + item.quantity * item.price, 0)
+      .reduce(
+        (total, item) =>
+          total +
+          (parseFloat(item.quantity) || 1) * (parseFloat(item.price) || 0),
+        0
+      )
       .toFixed(2);
+  };
+
+  const saveOrderToFirestore = async () => {
+    if (!tableNumber) {
+      alert("Por favor, selecciona un número de mesa.");
+      return;
+    }
+    if (orderItems.length === 0) {
+      alert("Agrega al menos un producto a la orden.");
+      return;
+    }
+    try {
+      await addDoc(collection(db, "ordenes"), {
+        mesero: waiterName,
+        numeroMesa: tableNumber,
+        fechaHora: new Date(),
+        productos: orderItems.map((item) => ({
+          cantidad: item.quantity,
+          nombre: item.name,
+          detalles: item.details || "",
+          precio: item.price,
+        })),
+        total: parseFloat(calculateTotal()),
+        estado: orderStatus,
+        metodoPago: paymentMethod,
+        factura: invoice,
+      });
+      alert("Orden agregada exitosamente!");
+      // Reiniciar los campos del formulario
+      setOrderItems([]);
+      setWaiterName("");
+      setTableNumber("");
+      setOrderDate(new Date());
+      setOrderStatus("activated");
+      setPaymentMethod("cash");
+      setInvoice("no");
+    } catch (error) {
+      console.error("Error al agregar la orden: ", error);
+    }
   };
 
   const tableOptions = [
@@ -226,20 +317,55 @@ export default function NuevaOrden() {
               ))}
             </tbody>
           </table>
-          <button
-            onClick={addOrderItem}
-            className="mt-4 px-4 py-2 bg-cafe-medio text-white rounded-md hover:bg-cafe-oscuro focus:outline-none"
-          >
-            Nuevo Producto
-          </button>
+          <div className="flex justify-between items-center mb-6">
+            <button
+              onClick={() => setIsModalVisible(true)}
+              className="bg-cafe-oscuro text-white px-4 py-2 rounded-md hover:bg-cafe-intenso"
+            >
+              Agregar Producto
+            </button>
+            <h3 className="text-xl font-semibold text-cafe-oscuro">
+              Total: ${calculateTotal()}
+            </h3>
+          </div>
+          {/* Modal para seleccionar productos */}
+          {isModalVisible && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                <h2 className="text-xl font-bold mb-4">
+                  Selecciona un Producto
+                </h2>
+                <ul className="space-y-2">
+                  {products.map((product) => (
+                    <li
+                      key={product.id}
+                      className="flex justify-between items-center border-b pb-2"
+                    >
+                      <span>
+                        {product.name} - ${product.price}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setSelectedProduct(product);
+                          addOrderItem();
+                        }}
+                        className="text-cafe-intenso hover:underline"
+                      >
+                        Seleccionar
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => setIsModalVisible(false)}
+                  className="mt-4 bg-red-500 text-white px-4 py-2 rounded-md"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-
-        <div className="mb-6 text-right">
-          <p className="text-xl font-semibold text-cafe-oscuro">
-            Total: ${calculateTotal()}
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
             <label
@@ -297,7 +423,10 @@ export default function NuevaOrden() {
           </div>
         </div>
 
-        <button className="w-full px-4 py-2 bg-cafe-oscuro text-white rounded-md hover:bg-cafe-intenso focus:outline-none focus:ring-2 focus:ring-cafe-medio">
+        <button
+          onClick={saveOrderToFirestore}
+          className="w-full px-4 py-2 bg-cafe-oscuro text-white rounded-md hover:bg-cafe-intenso focus:outline-none focus:ring-2 focus:ring-cafe-medio"
+        >
           Agregar Orden
         </button>
       </div>
