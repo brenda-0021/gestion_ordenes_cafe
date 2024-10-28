@@ -1,23 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
+import appFirebase from "../credenciales";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import Principal from "../pages/Principal";
+
+const auth = getAuth(appFirebase);
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [registrando, setRegistrando] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const { login } = useAuth(); // Obtén login desde el contexto
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login attempted with:", { email, password });
+    if (registrando) {
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("Registro exitoso");
+      } catch (error) {
+        alert("Asegúrate de que la contraseña tenga más de 8 caracteres");
+      }
+    } else {
+      try {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        login(userCredential.user); // Usa login de manera correcta
+        alert("Inicio de sesión exitoso");
+        navigate("/principal");
+      } catch (error) {
+        alert("El correo o la contraseña son incorrectos");
+      }
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-cafe-suave">
       <div className="bg-white p-8 rounded-lg shadow-md w-96">
         <h2 className="text-2xl font-bold mb-6 text-cafe-oscuro text-center">
-          Inicia Sesión
+          {registrando ? "Regístrate" : "Inicia Sesión"}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -72,10 +108,19 @@ export default function Login() {
               type="submit"
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cafe-oscuro hover:bg-cafe-intenso focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cafe-medio"
             >
-              Iniciar
+              {registrando ? "Registrarse" : "Iniciar Sesión"}
             </button>
           </div>
         </form>
+        <p className="text-center mt-4 text-sm text-cafe-oscuro">
+          {registrando ? "¿Ya tienes cuenta?" : "¿No tienes cuenta?"}{" "}
+          <button
+            className="text-cafe-intenso font-bold"
+            onClick={() => setRegistrando(!registrando)}
+          >
+            {registrando ? "Inicia sesión" : "Regístrate"}
+          </button>
+        </p>
       </div>
     </div>
   );

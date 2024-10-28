@@ -21,19 +21,17 @@ const AppRoutes = () => {
       <Route
         path="/nueva-orden"
         element={
-          //<PrivateRoute>
-          //<NuevaOrden />
-          //</PrivateRoute>
-          <NuevaOrden />
+          <PrivateRoute>
+            <NuevaOrden />
+          </PrivateRoute>
         }
       />
       <Route
         path="/dashboard-gerente"
         element={
-          //<PrivateRoute>
-          //<DashboardGerente />
-          //</PrivateRoute>
-          <DashboardGerente />
+          <PrivateRoute>
+            <DashboardGerente />
+          </PrivateRoute>
         }
       />
       <Route path="/" element={<Navigate to="/login" />} />
