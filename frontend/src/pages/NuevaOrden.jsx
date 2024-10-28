@@ -142,7 +142,6 @@ export default function NuevaOrden() {
       alert("Orden agregada exitosamente!");
       // Reiniciar los campos del formulario
       setOrderItems([]);
-      setWaiterName("");
       setTableNumber("");
       setOrderDate(new Date());
       setOrderStatus("activated");
