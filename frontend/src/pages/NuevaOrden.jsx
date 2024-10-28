@@ -18,6 +18,7 @@ export default function NuevaOrden() {
   const [products, setProducts] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProducts, setSelectedProducts] = useState([]);
 
   useEffect(() => {
     const auth = getAuth();
@@ -60,6 +61,28 @@ export default function NuevaOrden() {
 
     fetchProducts();
   }, []);
+
+  const toggleProductSelection = (product) => {
+    setSelectedProducts((prevSelected) => {
+      if (prevSelected.some((p) => p.id === product.id)) {
+        return prevSelected.filter((p) => p.id !== product.id);
+      } else {
+        return [...prevSelected, product];
+      }
+    });
+  };
+
+  const addSelectedProductsToOrder = () => {
+    const newOrderItems = selectedProducts.map((product) => ({
+      quantity: 1,
+      name: product.name,
+      details: "",
+      price: product.price,
+    }));
+    setOrderItems([...orderItems, ...newOrderItems]);
+    setSelectedProducts([]);
+    setIsModalVisible(false);
+  };
 
   const addOrderItem = () => {
     if (selectedProduct) {
@@ -331,9 +354,7 @@ export default function NuevaOrden() {
           {isModalVisible && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
               <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                <h2 className="text-xl font-bold mb-4">
-                  Selecciona un Producto
-                </h2>
+                <h2 className="text-xl font-bold mb-4">Selecciona Productos</h2>
                 <ul className="space-y-2">
                   {products.map((product) => (
                     <li
@@ -343,24 +364,24 @@ export default function NuevaOrden() {
                       <span>
                         {product.name} - ${product.price}
                       </span>
-                      <button
-                        onClick={() => {
-                          setSelectedProduct(product);
-                          addOrderItem();
-                        }}
-                        className="text-cafe-intenso hover:underline"
-                      >
-                        Seleccionar
-                      </button>
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.some(
+                          (p) => p.id === product.id
+                        )}
+                        onChange={() => toggleProductSelection(product)}
+                      />
                     </li>
                   ))}
                 </ul>
-                <button
-                  onClick={() => setIsModalVisible(false)}
-                  className="mt-4 bg-red-500 text-white px-4 py-2 rounded-md"
-                >
-                  Cerrar
-                </button>
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={addSelectedProductsToOrder}
+                    className="bg-cafe-oscuro text-white px-4 py-2 rounded-md hover:bg-cafe-intenso"
+                  >
+                    Agregar
+                  </button>
+                </div>
               </div>
             </div>
           )}
