@@ -1,6 +1,7 @@
 // Importa las funciones necesarias del SDK de Firebase
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
 
 // Configuración de Firebase usando variables de entorno
 const firebaseConfig = {
@@ -15,7 +16,8 @@ const firebaseConfig = {
 
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 const analytics = getAnalytics(app);
 
 // Exporta `app` como default
-export default app;
+export { app, db };

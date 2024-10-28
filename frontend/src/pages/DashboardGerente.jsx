@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import NuevoMeseroModal from "../components/NuevoMeseroModal";
 import NuevoProductoModal from "../components/NuevoProducctoModal";
+import { db } from "../credenciales";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 import {
   PlusIcon,
   TrashIcon,
@@ -21,10 +23,7 @@ export default function ManagerDashboard() {
   ]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-  const [products, setProducts] = useState([
-    { id: 1, name: "Café Americano", price: 2.5 },
-    { id: 2, name: "Croissant", price: 1.5 },
-  ]);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
     const checkSideMenuVisibility = () => {
@@ -37,6 +36,25 @@ export default function ManagerDashboard() {
     return () => {
       window.removeEventListener("resize", checkSideMenuVisibility);
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsCollection = collection(db, "productos");
+        const productsSnapshot = await getDocs(productsCollection);
+        const productsList = productsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          nombre: doc.data().nombre,
+          precio: doc.data().precio,
+        }));
+        setProducts(productsList);
+      } catch (error) {
+        console.error("Error al obtener productos: ", error);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   const handleAddWaiter = () => {
@@ -60,16 +78,35 @@ export default function ManagerDashboard() {
     setIsModalOpen(false);
   };
 
-  const addProductFromModal = (productData) => {
-    setProducts([
-      ...products,
-      {
-        id: Date.now(),
-        name: productData.nombre,
-        price: parseFloat(productData.precio),
-      },
-    ]);
-    setIsProductModalOpen(false);
+  const addProductFromModal = async (productData) => {
+    if (!productData.nombre || isNaN(productData.precio)) {
+      console.error("Nombre o precio inválidos");
+      return;
+    }
+
+    try {
+      const docRef = await addDoc(collection(db, "productos"), {
+        nombre: productData.nombre,
+        precio: parseFloat(productData.precio) || 0,
+      });
+
+      setProducts((prevProducts) => [
+        ...prevProducts,
+        {
+          id: docRef.id,
+          nombre: productData.nombre,
+          precio: parseFloat(productData.precio) || 0,
+        },
+      ]);
+      console.log("Producto agregado:", {
+        nombre: productData.nombre,
+        precio: parseFloat(productData.precio) || 0,
+      });
+
+      setIsProductModalOpen(false);
+    } catch (error) {
+      console.error("Error agregando producto: ", error);
+    }
   };
 
   const closeModal = () => {
@@ -208,7 +245,10 @@ export default function ManagerDashboard() {
                 >
                   <span className="flex items-center">
                     <CakeIcon className="h-5 w-5 mr-2 text-cafe-medio" />
-                    {product.name} - ${product.price}
+                    {product.nombre} - $
+                    {product.precio !== undefined
+                      ? product.precio.toFixed(2)
+                      : "N/A"}
                   </span>
                   <button
                     onClick={() => handleDeleteProduct(product.id)}
@@ -231,7 +271,7 @@ export default function ManagerDashboard() {
       <NuevoProductoModal
         isOpen={isProductModalOpen}
         onClose={closeProductModal}
-        onSave={addProductFromModal}
+        onAddProduct={addProductFromModal}
       />
     </div>
   );

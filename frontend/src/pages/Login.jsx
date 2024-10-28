@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
-import appFirebase from "../credenciales";
+import { app } from "../credenciales";
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Principal from "../pages/Principal";
 
-const auth = getAuth(appFirebase);
+const auth = getAuth(app);
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -22,13 +22,24 @@ export default function Login() {
   const [registrando, setRegistrando] = useState(false);
   const navigate = useNavigate();
 
-  const { login } = useAuth(); // Obtén login desde el contexto
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (registrando) {
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        // Almacena datos relevantes en localStorage al registrarte
+        const userData = {
+          email: userCredential.user.email,
+          uid: userCredential.user.uid,
+          role: "gerente",
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
         alert("Registro exitoso");
       } catch (error) {
         alert("Asegúrate de que la contraseña tenga más de 8 caracteres");
@@ -40,9 +51,23 @@ export default function Login() {
           email,
           password
         );
-        login(userCredential.user); // Usa login de manera correcta
-        alert("Inicio de sesión exitoso");
-        navigate("/principal");
+        const userData = {
+          email: userCredential.user.email,
+          uid: userCredential.user.uid,
+          role:
+            userCredential.user.email === "brenda@gmail.com"
+              ? "gerente"
+              : "mesero",
+        };
+        login(userCredential.user);
+        localStorage.setItem("user", JSON.stringify(userData));
+        //alert("Inicio de sesión exitoso");
+        // Redirección basada en el rol
+        if (userData.role === "gerente") {
+          navigate("/dashboard-gerente");
+        } else {
+          navigate("/principal");
+        }
       } catch (error) {
         alert("El correo o la contraseña son incorrectos");
       }

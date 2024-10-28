@@ -21,7 +21,7 @@ const AppRoutes = () => {
       <Route
         path="/nueva-orden"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredRole="mesero">
             <NuevaOrden />
           </PrivateRoute>
         }
@@ -29,7 +29,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard-gerente"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredRole="gerente">
             <DashboardGerente />
           </PrivateRoute>
         }
