@@ -91,11 +91,11 @@ const MenuLateral = () => {
               onClick={toggleMenu}
               className="text-cafe-suave hover:text-cafe-claro"
             >
-              {isCollapsed ? (
+              {/* {isCollapsed ? (
                 <ArrowRightIcon className="h-6 w-6" />
               ) : (
                 <ArrowLeftIcon className="h-6 w-6" />
-              )}
+              )} */}
             </button>
           )}
         </div>
