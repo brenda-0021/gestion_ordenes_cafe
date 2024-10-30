@@ -65,7 +65,7 @@ Sigue los siguientes pasos para correr el proyecto en tu entorno local:
 
 Puedes acceder a la versión desplegada del proyecto en el siguiente enlace:
 
-[**Aún no se ha desplegado**](https://dominio.com)
+[**Aún no se ha desplegado nuestra app**](https://dominio.com)
 
 ---
 

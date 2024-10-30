@@ -12,6 +12,7 @@ import {
   UserIcon,
   CakeIcon,
   ClipboardDocumentListIcon,
+  PencilSquareIcon,
 } from "@heroicons/react/24/solid";
 
 export default function ManagerDashboard() {
@@ -48,6 +49,10 @@ export default function ManagerDashboard() {
           nombre: doc.data().nombre,
           precio: doc.data().precio,
         }));
+
+        // Ordenar la lista alfabéticamente por el nombre del producto
+        productsList.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
         setProducts(productsList);
       } catch (error) {
         console.error("Error al obtener productos: ", error);
@@ -131,32 +136,38 @@ export default function ManagerDashboard() {
         <div className="flex flex-wrap mb-6">
           <button
             onClick={() => setActiveTab("reports")}
-            className={`mr-2 mb-2 px-4 py-2 rounded-md ${
+            className={`mr-2 mb-2 px-4 py-2 rounded-md flex items-center ${
               activeTab === "reports"
                 ? "bg-cafe-oscuro text-white"
                 : "bg-cafe-claro text-cafe-oscuro"
             }`}
           >
+            <PencilSquareIcon className="h-5 w-5 mr-2" />{" "}
+            {/* Ícono de lápiz para Reportes */}
             Reportes
           </button>
           <button
             onClick={() => setActiveTab("waiters")}
-            className={`mr-2 mb-2 px-4 py-2 rounded-md ${
+            className={`mr-2 mb-2 px-4 py-2 rounded-md flex items-center ${
               activeTab === "waiters"
                 ? "bg-cafe-oscuro text-white"
                 : "bg-cafe-claro text-cafe-oscuro"
             }`}
           >
+            <UserIcon className="h-5 w-5 mr-2" />{" "}
+            {/* Ícono de persona para Meseros */}
             Meseros
           </button>
           <button
             onClick={() => setActiveTab("products")}
-            className={`mr-2 mb-2 px-4 py-2 rounded-md ${
+            className={`mr-2 mb-2 px-4 py-2 rounded-md flex items-center ${
               activeTab === "products"
                 ? "bg-cafe-oscuro text-white"
                 : "bg-cafe-claro text-cafe-oscuro"
             }`}
           >
+            <CakeIcon className="h-5 w-5 mr-2" />{" "}
+            {/* Ícono de comida para Productos */}
             Productos
           </button>
         </div>
@@ -183,7 +194,6 @@ export default function ManagerDashboard() {
                   <ClipboardDocumentListIcon className="h-5 w-5 mr-2 text-cafe-medio" />
                   <span>Reporte 21/05/2023</span>
                 </li>
-                {/* Agrega más reportes según sea necesario */}
               </ul>
             </div>
           </div>
@@ -228,27 +238,33 @@ export default function ManagerDashboard() {
         {activeTab === "products" && (
           <div>
             <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4">
-              Gestionar Productos
+              Comidas y Bebidas Actuales
             </h2>
-            <button
-              onClick={handleOpenProductModal}
-              className="flex items-center px-4 py-2 bg-cafe-medio text-white rounded-md hover:bg-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso"
-            >
-              <PlusIcon className="h-5 w-5 mr-2" />
-              Agregar Producto
-            </button>
-            <ul className="space-y-2 mt-4">
+            <div className="flex justify-between">
+              <div></div>
+              <button
+                onClick={handleOpenProductModal}
+                className="flex items-center px-4 py-2 bg-cafe-medio text-white rounded-md hover:bg-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso ml-auto"
+              >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                Agregar Producto
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
               {products.map((product) => (
-                <li
+                <div
                   key={product.id}
-                  className="flex items-center justify-between bg-cafe-claro p-2 rounded-md"
+                  className="flex items-center justify-between bg-cafe-claro p-4 rounded-md"
                 >
                   <span className="flex items-center">
                     <CakeIcon className="h-5 w-5 mr-2 text-cafe-medio" />
-                    {product.nombre} - $
-                    {product.precio !== undefined
-                      ? product.precio.toFixed(2)
-                      : "N/A"}
+                    {product.nombre} -{" "}
+                    <span className="text-red-500">
+                      $
+                      {product.precio !== undefined
+                        ? product.precio.toFixed(2)
+                        : "N/A"}
+                    </span>
                   </span>
                   <button
                     onClick={() => handleDeleteProduct(product.id)}
@@ -256,9 +272,9 @@ export default function ManagerDashboard() {
                   >
                     <TrashIcon className="h-5 w-5" />
                   </button>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )}
       </div>
