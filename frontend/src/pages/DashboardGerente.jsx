@@ -317,7 +317,7 @@ export default function ManagerDashboard() {
                   key={product.id}
                   className="flex items-center justify-between bg-cafe-claro p-4 rounded-md"
                 >
-                  <span className="flex items-center">
+                  <span className="flex items-center text-cafe-oscuro">
                     <CakeIcon className="h-5 w-5 mr-2 text-cafe-oscuro" />
                     {product.nombre} -{" "}
                     <span className="text-red-500">
@@ -333,7 +333,7 @@ export default function ManagerDashboard() {
                         setProductToEdit({ ...product });
                         setIsEditProductModalOpen(true);
                       }}
-                      className="text-blue-500 hover:text-blue-700 mr-2"
+                      className="text-cafe-medio hover:text-cafe-oscuro mr-2"
                     >
                       <PencilSquareIcon className="h-5 w-5" />
                     </button>

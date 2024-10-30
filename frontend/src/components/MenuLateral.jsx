@@ -5,11 +5,12 @@ import { Link } from "react-router-dom";
 import {
   HomeIcon,
   ClipboardDocumentIcon,
-  CogIcon,
+  Cog6ToothIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
   Bars3Icon,
   XMarkIcon,
+  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 
 const MenuLateral = () => {
@@ -37,8 +38,8 @@ const MenuLateral = () => {
       icon: ClipboardDocumentIcon,
       path: "/nueva-orden",
     },
-    { name: "Ajustes", icon: CogIcon, path: "/settings" },
-    { name: "Cerrar Sesión", icon: CogIcon, path: "/logout" },
+    { name: "Ajustes", icon: Cog6ToothIcon, path: "/settings" },
+    { name: "Cerrar Sesión", icon: ArrowRightOnRectangleIcon, path: "/logout" },
   ];
 
   const toggleMenu = () => {
@@ -53,10 +54,10 @@ const MenuLateral = () => {
 
   return (
     <>
-      {/* Botón de hamburguesa solo para dispositivos móviles */}
       <button
-        className="sm:hidden fixed top-4 left-4 z-50 p-2 bg-cafe-medio text-cafe-suave rounded-md"
+        className="sm:hidden fixed top-4 left-4 z-50 p-2.5 bg-cafe-medio hover:bg-cafe-oscuro text-cafe-suave rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cafe-claro focus:ring-offset-2"
         onClick={toggleMobileMenu}
+        aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
       >
         {isMobileMenuOpen ? (
           <XMarkIcon className="h-6 w-6" />
@@ -65,10 +66,9 @@ const MenuLateral = () => {
         )}
       </button>
 
-      {/* Menú lateral */}
       <div
-        className={`fixed top-0 left-0 h-full bg-cafe-oscuro text-cafe-suave transition-all duration-300 ease-in-out
-          ${isCollapsed && !isMobile ? "w-16" : "w-64"}
+        className={`fixed top-0 left-0 h-full bg-gradient-to-b from-cafe-oscuro to-cafe-medio text-cafe-suave shadow-xl transition-all duration-300 ease-in-out
+          ${isCollapsed && !isMobile ? "w-20" : "w-64"}
           ${
             isMobile
               ? isMobileMenuOpen
@@ -78,9 +78,9 @@ const MenuLateral = () => {
           }
           z-40`}
       >
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between p-6 border-b border-cafe-medio/20">
           <h1
-            className={`text-2xl ml-auto pr-4 ${
+            className={`text-2xl font-bold tracking-tight ${
               isCollapsed && !isMobile ? "hidden" : "block"
             }`}
           >
@@ -89,46 +89,60 @@ const MenuLateral = () => {
           {!isMobile && (
             <button
               onClick={toggleMenu}
-              className="text-cafe-suave hover:text-cafe-claro"
+              className="p-2 hover:bg-cafe-medio/20 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cafe-claro/20"
+              aria-label={isCollapsed ? "Expandir menú" : "Colapsar menú"}
             >
-              {/* {isCollapsed ? (
-                <ArrowRightIcon className="h-6 w-6" />
+              {isCollapsed ? (
+                <ArrowRightIcon className="h-5 w-5" />
               ) : (
-                <ArrowLeftIcon className="h-6 w-6" />
-              )} */}
+                <ArrowLeftIcon className="h-5 w-5" />
+              )}
             </button>
           )}
         </div>
 
-        <ul className="mt-8 space-y-4">
-          {menuItems.map((item) => (
-            <li
-              key={item.name}
-              className="px-4 py-2 hover:bg-cafe-medio rounded-lg transition-colors duration-200"
-            >
-              <Link
-                to={item.path}
-                className="flex items-center space-x-2"
-                onClick={() => isMobile && toggleMobileMenu()}
-              >
-                <item.icon className="h-6 w-6" />
-                <span
-                  className={`${isCollapsed && !isMobile ? "hidden" : "block"}`}
+        <nav className="mt-6 px-3">
+          <ul className="space-y-1">
+            {menuItems.map((item) => (
+              <li key={item.name}>
+                <Link
+                  to={item.path}
+                  className={`flex items-center px-3 py-3 rounded-lg transition-all duration-200
+                    hover:bg-cafe-medio/20 group relative
+                    ${item.name === "Cerrar Sesión" ? "mt-8" : ""}
+                  `}
+                  onClick={() => isMobile && toggleMobileMenu()}
                 >
-                  {item.name}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                  <item.icon className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                  <span
+                    className={`ml-3 whitespace-nowrap overflow-hidden transition-opacity duration-200
+                      ${
+                        isCollapsed && !isMobile
+                          ? "opacity-0 w-0"
+                          : "opacity-100"
+                      }
+                    `}
+                  >
+                    {item.name}
+                  </span>
+                  {isCollapsed && !isMobile && (
+                    <div className="absolute left-14 px-2 py-1 bg-cafe-oscuro rounded-md invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50">
+                      {item.name}
+                    </div>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
 
-      {/* Fondo para cerrar el menú móvil al hacer clic fuera */}
       {isMobile && isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 z-30"
           onClick={toggleMobileMenu}
-        ></div>
+          aria-hidden="true"
+        />
       )}
     </>
   );
