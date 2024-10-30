@@ -3,8 +3,16 @@
 import React, { useEffect, useState } from "react";
 import NuevoMeseroModal from "../components/NuevoMeseroModal";
 import NuevoProductoModal from "../components/NuevoProducctoModal";
+import EditarProductoModal from "../components/EditarProductoModal";
 import { db } from "../credenciales";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import {
   PlusIcon,
   TrashIcon,
@@ -22,9 +30,11 @@ export default function ManagerDashboard() {
     { id: 1, name: "Juan Pérez" },
     { id: 2, name: "María García" },
   ]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [isWaiterModalOpen, setIsWaiterModalOpen] = useState(false);
+  const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
+  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
   const [products, setProducts] = useState([]);
+  const [productToEdit, setProductToEdit] = useState(null);
 
   useEffect(() => {
     const checkSideMenuVisibility = () => {
@@ -50,7 +60,6 @@ export default function ManagerDashboard() {
           precio: doc.data().precio,
         }));
 
-        // Ordenar la lista alfabéticamente por el nombre del producto
         productsList.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
         setProducts(productsList);
@@ -63,24 +72,74 @@ export default function ManagerDashboard() {
   }, []);
 
   const handleAddWaiter = () => {
-    setIsModalOpen(true);
+    setIsWaiterModalOpen(true);
   };
 
   const handleDeleteWaiter = (id) => {
     setWaiters(waiters.filter((waiter) => waiter.id !== id));
   };
 
-  const handleOpenProductModal = () => {
-    setIsProductModalOpen(true);
+  const handleOpenNewProductModal = () => {
+    setIsNewProductModalOpen(true);
   };
 
-  const handleDeleteProduct = (id) => {
+  const deleteProductFromDB = async (id) => {
+    try {
+      const productRef = doc(db, "productos", id);
+      await deleteDoc(productRef);
+      console.log(`Producto con ID ${id} eliminado de la base de datos`);
+    } catch (error) {
+      console.error(
+        "Error al eliminar el producto de la base de datos:",
+        error
+      );
+    }
+  };
+
+  const handleEditProduct = async (productData) => {
+    if (
+      !productData ||
+      !productData.id ||
+      !productData.nombre ||
+      isNaN(productData.precio)
+    ) {
+      console.error("ID, nombre o precio inválidos");
+      return;
+    }
+
+    try {
+      const productRef = doc(db, "productos", productData.id);
+      await updateDoc(productRef, {
+        nombre: productData.nombre,
+        precio: parseFloat(productData.precio) || 0,
+      });
+
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.id === productData.id
+            ? {
+                ...product,
+                nombre: productData.nombre,
+                precio: parseFloat(productData.precio) || 0,
+              }
+            : product
+        )
+      );
+      console.log("Producto editado:", productData);
+      setIsEditProductModalOpen(false);
+    } catch (error) {
+      console.error("Error editando producto: ", error);
+    }
+  };
+
+  const handleDeleteProduct = async (id) => {
+    await deleteProductFromDB(id);
     setProducts(products.filter((product) => product.id !== id));
   };
 
   const addWaiterFromModal = (waiterData) => {
     setWaiters([...waiters, { id: Date.now(), name: waiterData.nombre }]);
-    setIsModalOpen(false);
+    setIsWaiterModalOpen(false);
   };
 
   const addProductFromModal = async (productData) => {
@@ -108,18 +167,23 @@ export default function ManagerDashboard() {
         precio: parseFloat(productData.precio) || 0,
       });
 
-      setIsProductModalOpen(false);
+      setIsNewProductModalOpen(false);
     } catch (error) {
       console.error("Error agregando producto: ", error);
     }
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const closeWaiterModal = () => {
+    setIsWaiterModalOpen(false);
   };
 
-  const closeProductModal = () => {
-    setIsProductModalOpen(false);
+  const closeNewProductModal = () => {
+    setIsNewProductModalOpen(false);
+  };
+
+  const closeEditProductModal = () => {
+    setIsEditProductModalOpen(false);
+    setProductToEdit(null);
   };
 
   return (
@@ -142,8 +206,7 @@ export default function ManagerDashboard() {
                 : "bg-cafe-claro text-cafe-oscuro"
             }`}
           >
-            <PencilSquareIcon className="h-5 w-5 mr-2" />{" "}
-            {/* Ícono de lápiz para Reportes */}
+            <PencilSquareIcon className="h-5 w-5 mr-2" />
             Reportes
           </button>
           <button
@@ -154,8 +217,7 @@ export default function ManagerDashboard() {
                 : "bg-cafe-claro text-cafe-oscuro"
             }`}
           >
-            <UserIcon className="h-5 w-5 mr-2" />{" "}
-            {/* Ícono de persona para Meseros */}
+            <UserIcon className="h-5 w-5 mr-2" />
             Meseros
           </button>
           <button
@@ -166,8 +228,7 @@ export default function ManagerDashboard() {
                 : "bg-cafe-claro text-cafe-oscuro"
             }`}
           >
-            <CakeIcon className="h-5 w-5 mr-2" />{" "}
-            {/* Ícono de comida para Productos */}
+            <CakeIcon className="h-5 w-5 mr-2" />
             Productos
           </button>
         </div>
@@ -238,12 +299,12 @@ export default function ManagerDashboard() {
         {activeTab === "products" && (
           <div>
             <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4">
-              Comidas y Bebidas Actuales
+              Comidas y Bebidas Disponibles
             </h2>
             <div className="flex justify-between">
               <div></div>
               <button
-                onClick={handleOpenProductModal}
+                onClick={handleOpenNewProductModal}
                 className="flex items-center px-4 py-2 bg-cafe-medio text-white rounded-md hover:bg-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso ml-auto"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
@@ -257,7 +318,7 @@ export default function ManagerDashboard() {
                   className="flex items-center justify-between bg-cafe-claro p-4 rounded-md"
                 >
                   <span className="flex items-center">
-                    <CakeIcon className="h-5 w-5 mr-2 text-cafe-medio" />
+                    <CakeIcon className="h-5 w-5 mr-2 text-cafe-oscuro" />
                     {product.nombre} -{" "}
                     <span className="text-red-500">
                       $
@@ -266,12 +327,23 @@ export default function ManagerDashboard() {
                         : "N/A"}
                     </span>
                   </span>
-                  <button
-                    onClick={() => handleDeleteProduct(product.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => {
+                        setProductToEdit({ ...product });
+                        setIsEditProductModalOpen(true);
+                      }}
+                      className="text-blue-500 hover:text-blue-700 mr-2"
+                    >
+                      <PencilSquareIcon className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(product.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -280,14 +352,20 @@ export default function ManagerDashboard() {
       </div>
 
       <NuevoMeseroModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
+        isOpen={isWaiterModalOpen}
+        onClose={closeWaiterModal}
         onAddWaiter={addWaiterFromModal}
       />
       <NuevoProductoModal
-        isOpen={isProductModalOpen}
-        onClose={closeProductModal}
+        isOpen={isNewProductModalOpen}
+        onClose={closeNewProductModal}
         onAddProduct={addProductFromModal}
+      />
+      <EditarProductoModal
+        isOpen={isEditProductModalOpen}
+        onClose={closeEditProductModal}
+        product={productToEdit}
+        onEditProduct={handleEditProduct}
       />
     </div>
   );
