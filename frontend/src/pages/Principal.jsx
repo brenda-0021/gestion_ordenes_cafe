@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { collection, query, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  query,
+  onSnapshot,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "../credenciales";
 import { Button } from "../components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/card";
@@ -77,6 +83,19 @@ export default function Principal() {
         return "bg-red-100 text-red-800 border-red-200";
       default:
         return "";
+    }
+  };
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const orderRef = doc(db, "ordenes", orderId);
+      await updateDoc(orderRef, { estado: newStatus });
+      setSelectedOrder((prevOrder) => ({
+        ...prevOrder,
+        estado: newStatus,
+      }));
+    } catch (error) {
+      console.error("Error updating order status:", error);
     }
   };
 
@@ -292,6 +311,50 @@ export default function Principal() {
                       <span>Total</span>
                       <span>${selectedOrder.total}</span>
                     </div>
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <h3 className="font-semibold text-cafe-oscuro mb-2">
+                    Cambiar estado de la orden
+                  </h3>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant={
+                        selectedOrder.estado === "activated"
+                          ? "default"
+                          : "outline"
+                      }
+                      onClick={() =>
+                        updateOrderStatus(selectedOrder.id, "activated")
+                      }
+                    >
+                      Activa
+                    </Button>
+                    <Button
+                      variant={
+                        selectedOrder.estado === "finished"
+                          ? "default"
+                          : "outline"
+                      }
+                      onClick={() =>
+                        updateOrderStatus(selectedOrder.id, "finished")
+                      }
+                    >
+                      Finalizada
+                    </Button>
+                    <Button
+                      variant={
+                        selectedOrder.estado === "canceled"
+                          ? "default"
+                          : "outline"
+                      }
+                      onClick={() =>
+                        updateOrderStatus(selectedOrder.id, "canceled")
+                      }
+                    >
+                      Cancelada
+                    </Button>
                   </div>
                 </div>
               </CardContent>

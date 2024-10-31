@@ -21,6 +21,8 @@ import {
   CakeIcon,
   ClipboardDocumentListIcon,
   PencilSquareIcon,
+  ChartBarIcon,
+  CurrencyDollarIcon,
 } from "@heroicons/react/24/solid";
 
 export default function ManagerDashboard() {
@@ -58,6 +60,7 @@ export default function ManagerDashboard() {
           id: doc.id,
           nombre: doc.data().nombre,
           precio: doc.data().precio,
+          tipo: doc.data().tipo,
         }));
 
         productsList.sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -96,14 +99,20 @@ export default function ManagerDashboard() {
     }
   };
 
+  const handleOpenEditProductModal = (product) => {
+    setProductToEdit(product);
+    setIsEditProductModalOpen(true);
+  };
+
   const handleEditProduct = async (productData) => {
     if (
       !productData ||
       !productData.id ||
       !productData.nombre ||
-      isNaN(productData.precio)
+      isNaN(productData.precio) ||
+      !productData.tipo
     ) {
-      console.error("ID, nombre o precio inválidos");
+      console.error("ID, nombre, precio o tipo inválidos");
       return;
     }
 
@@ -112,6 +121,7 @@ export default function ManagerDashboard() {
       await updateDoc(productRef, {
         nombre: productData.nombre,
         precio: parseFloat(productData.precio) || 0,
+        tipo: productData.tipo,
       });
 
       setProducts((prevProducts) =>
@@ -121,6 +131,7 @@ export default function ManagerDashboard() {
                 ...product,
                 nombre: productData.nombre,
                 precio: parseFloat(productData.precio) || 0,
+                tipo: productData.tipo,
               }
             : product
         )
@@ -143,8 +154,8 @@ export default function ManagerDashboard() {
   };
 
   const addProductFromModal = async (productData) => {
-    if (!productData.nombre || isNaN(productData.precio)) {
-      console.error("Nombre o precio inválidos");
+    if (!productData.nombre || isNaN(productData.precio) || !productData.tipo) {
+      console.error("Nombre, precio o tipo inválidos");
       return;
     }
 
@@ -152,6 +163,7 @@ export default function ManagerDashboard() {
       const docRef = await addDoc(collection(db, "productos"), {
         nombre: productData.nombre,
         precio: parseFloat(productData.precio) || 0,
+        tipo: productData.tipo, // Nuevo campo tipo
       });
 
       setProducts((prevProducts) => [
@@ -160,11 +172,13 @@ export default function ManagerDashboard() {
           id: docRef.id,
           nombre: productData.nombre,
           precio: parseFloat(productData.precio) || 0,
+          tipo: productData.tipo, // Agregar tipo en el estado
         },
       ]);
       console.log("Producto agregado:", {
         nombre: productData.nombre,
         precio: parseFloat(productData.precio) || 0,
+        tipo: productData.tipo, // Mostrar tipo en el log
       });
 
       setIsNewProductModalOpen(false);
@@ -188,33 +202,33 @@ export default function ManagerDashboard() {
 
   return (
     <div
-      className={`min-h-screen bg-cafe-suave p-4 md:p-8 ${
+      className={`min-h-screen bg-gradient-to-br from-cafe-suave to-cafe-claro p-4 md:p-8 ${
         isSideMenuVisible ? "sm:ml-16 lg:ml-64" : ""
       }`}
     >
-      <div className="mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-cafe-oscuro mb-6">
+      <div className="mx-auto bg-white rounded-xl shadow-lg p-6 max-w-8xl">
+        <h1 className="text-3xl font-bold text-cafe-oscuro mb-8">
           Panel del Gerente
         </h1>
 
-        <div className="flex flex-wrap mb-6">
+        <div className="flex flex-wrap mb-8">
           <button
             onClick={() => setActiveTab("reports")}
-            className={`mr-2 mb-2 px-4 py-2 rounded-md flex items-center ${
+            className={`mr-4 mb-2 px-6 py-3 rounded-lg flex items-center transition-colors duration-300 ${
               activeTab === "reports"
                 ? "bg-cafe-oscuro text-white"
-                : "bg-cafe-claro text-cafe-oscuro"
+                : "bg-cafe-claro text-cafe-oscuro hover:bg-cafe-medio hover:text-white"
             }`}
           >
-            <PencilSquareIcon className="h-5 w-5 mr-2" />
+            <ChartBarIcon className="h-5 w-5 mr-2" />
             Reportes
           </button>
           <button
             onClick={() => setActiveTab("waiters")}
-            className={`mr-2 mb-2 px-4 py-2 rounded-md flex items-center ${
+            className={`mr-4 mb-2 px-6 py-3 rounded-lg flex items-center transition-colors duration-300 ${
               activeTab === "waiters"
                 ? "bg-cafe-oscuro text-white"
-                : "bg-cafe-claro text-cafe-oscuro"
+                : "bg-cafe-claro text-cafe-oscuro hover:bg-cafe-medio hover:text-white"
             }`}
           >
             <UserIcon className="h-5 w-5 mr-2" />
@@ -222,10 +236,10 @@ export default function ManagerDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("products")}
-            className={`mr-2 mb-2 px-4 py-2 rounded-md flex items-center ${
+            className={`mr-4 mb-2 px-6 py-3 rounded-lg flex items-center transition-colors duration-300 ${
               activeTab === "products"
                 ? "bg-cafe-oscuro text-white"
-                : "bg-cafe-claro text-cafe-oscuro"
+                : "bg-cafe-claro text-cafe-oscuro hover:bg-cafe-medio hover:text-white"
             }`}
           >
             <CakeIcon className="h-5 w-5 mr-2" />
@@ -234,59 +248,68 @@ export default function ManagerDashboard() {
         </div>
 
         {activeTab === "reports" && (
-          <div>
-            <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4">
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4 flex items-center">
+              <ChartBarIcon className="h-7 w-7 mr-2 text-cafe-medio" />
               Reportes
             </h2>
-            <button className="mb-4 flex items-center px-4 py-2 bg-cafe-medio text-white rounded-md hover:bg-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso">
+            <button className="mb-6 flex items-center px-6 py-3 bg-cafe-medio text-white rounded-lg hover:bg-cafe-oscuro transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:ring-offset-2">
               <DocumentTextIcon className="h-5 w-5 mr-2" />
               Generar reporte del día
             </button>
-            <div className="bg-cafe-claro p-4 rounded-md">
-              <h3 className="text-xl font-semibold text-cafe-oscuro mb-2">
+            <div className="bg-cafe-claro/30 p-6 rounded-lg shadow-inner">
+              <h3 className="text-xl font-semibold text-cafe-oscuro mb-4 flex items-center">
+                <ClipboardDocumentListIcon className="h-6 w-6 mr-2 text-cafe-medio" />
                 Reportes Anteriores
               </h3>
-              <ul className="space-y-2">
-                <li className="flex items-center">
-                  <ClipboardDocumentListIcon className="h-5 w-5 mr-2 text-cafe-medio" />
-                  <span>Reporte 22/05/2023</span>
-                </li>
-                <li className="flex items-center">
-                  <ClipboardDocumentListIcon className="h-5 w-5 mr-2 text-cafe-medio" />
-                  <span>Reporte 21/05/2023</span>
-                </li>
+              <ul className="space-y-3">
+                {["22/05/2023", "21/05/2023"].map((date) => (
+                  <li
+                    key={date}
+                    className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
+                  >
+                    <span className="flex items-center text-cafe-oscuro">
+                      <DocumentTextIcon className="h-5 w-5 mr-3 text-cafe-medio" />
+                      Reporte {date}
+                    </span>
+                    <button className="text-cafe-medio hover:text-cafe-oscuro transition-colors duration-300">
+                      <PencilSquareIcon className="h-5 w-5" />
+                    </button>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
         )}
 
         {activeTab === "waiters" && (
-          <div>
-            <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4">
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4 flex items-center">
+              <UserIcon className="h-7 w-7 mr-2 text-cafe-medio" />
               Gestionar Meseros
             </h2>
-            <div className="flex mb-4">
+            <div className="mb-6">
               <button
                 onClick={handleAddWaiter}
-                className="flex items-center px-4 py-2 bg-cafe-medio text-white rounded-md hover:bg-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso"
+                className="flex items-center px-6 py-3 bg-cafe-medio text-white rounded-lg hover:bg-cafe-oscuro transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:ring-offset-2"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Agregar Mesero
               </button>
             </div>
-            <ul className="space-y-2">
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {waiters.map((waiter) => (
                 <li
                   key={waiter.id}
-                  className="flex items-center justify-between bg-cafe-claro p-2 rounded-md"
+                  className="flex items-center justify-between bg-cafe-claro/30 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
                 >
-                  <span className="flex items-center">
-                    <UserIcon className="h-5 w-5 mr-2 text-cafe-medio" />
+                  <span className="flex items-center text-cafe-oscuro">
+                    <UserIcon className="h-5 w-5 mr-3 text-cafe-medio" />
                     {waiter.name}
                   </span>
                   <button
                     onClick={() => handleDeleteWaiter(waiter.id)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 transition-colors duration-300"
                   >
                     <TrashIcon className="h-5 w-5" />
                   </button>
@@ -297,55 +320,45 @@ export default function ManagerDashboard() {
         )}
 
         {activeTab === "products" && (
-          <div>
-            <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4">
-              Comidas y Bebidas Disponibles
-            </h2>
-            <div className="flex justify-between">
-              <div></div>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-cafe-oscuro flex items-center">
+                <CakeIcon className="h-7 w-7 mr-2 text-cafe-medio" />
+                Comidas y Bebidas Disponibles
+              </h2>
               <button
                 onClick={handleOpenNewProductModal}
-                className="flex items-center px-4 py-2 bg-cafe-medio text-white rounded-md hover:bg-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso ml-auto"
+                className="flex items-center px-6 py-3 bg-cafe-medio text-white rounded-lg hover:bg-cafe-oscuro transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:ring-offset-2"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Agregar Producto
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex items-center justify-between bg-cafe-claro p-4 rounded-md"
-                >
-                  <span className="flex items-center text-cafe-oscuro">
-                    <CakeIcon className="h-5 w-5 mr-2 text-cafe-oscuro" />
-                    {product.nombre} -{" "}
-                    <span className="text-red-500">
-                      $
-                      {product.precio !== undefined
-                        ? product.precio.toFixed(2)
-                        : "N/A"}
+            <div className="h-full min-h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-cafe-medio scrollbar-track-cafe-claro">
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {products.map((product) => (
+                  <li
+                    key={product.id}
+                    className="flex items-center justify-between bg-cafe-claro/30 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
+                  >
+                    <span className="text-cafe-oscuro">{product.nombre}</span>
+                    <span className="text-cafe-medio">
+                      ${product.precio.toFixed(2)}
                     </span>
-                  </span>
-                  <div className="flex items-center">
-                    <button
-                      onClick={() => {
-                        setProductToEdit({ ...product });
-                        setIsEditProductModalOpen(true);
-                      }}
-                      className="text-cafe-medio hover:text-cafe-oscuro mr-2"
-                    >
-                      <PencilSquareIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleOpenEditProductModal(product)}
+                        className="text-cafe-medio hover:text-cafe-oscuro transition-colors duration-300"
+                      >
+                        <PencilSquareIcon className="h-5 w-5" />
+                      </button>
+                      <button onClick={() => handleDeleteProduct(product.id)}>
+                        <TrashIcon className="h-5 w-5 text-red-500 hover:text-red-700 transition-colors duration-300" />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         )}
@@ -364,8 +377,8 @@ export default function ManagerDashboard() {
       <EditarProductoModal
         isOpen={isEditProductModalOpen}
         onClose={closeEditProductModal}
-        product={productToEdit}
         onEditProduct={handleEditProduct}
+        product={productToEdit}
       />
     </div>
   );

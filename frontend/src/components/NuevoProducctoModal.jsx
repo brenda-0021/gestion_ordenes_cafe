@@ -5,12 +5,14 @@ import React, { useState } from "react";
 const NuevoProductoModal = ({ isOpen, onClose, onAddProduct }) => {
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
+  const [tipo, setTipo] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAddProduct({ nombre, precio });
+    onAddProduct({ nombre, precio, tipo });
     setNombre("");
     setPrecio("");
+    setTipo("");
   };
 
   if (!isOpen) return null;
@@ -41,6 +43,23 @@ const NuevoProductoModal = ({ isOpen, onClose, onAddProduct }) => {
               required
               className="border border-gray-300 rounded p-2 w-full"
             />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">
+              Tipo de Producto:
+            </label>
+            <select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+              required
+              className="border border-gray-300 rounded p-2 w-full"
+            >
+              <option value="">Seleccione un tipo</option>
+              <option value="bebidas frias">Bebidas Frías</option>
+              <option value="bebidas calientes">Bebidas Calientes</option>
+              <option value="desayunos">Desayunos</option>
+              <option value="postres">Postres</option>
+            </select>
           </div>
           <div className="flex justify-center space-x-2">
             <button

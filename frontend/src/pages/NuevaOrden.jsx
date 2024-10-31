@@ -6,6 +6,8 @@ import {
   PlusIcon,
   MinusIcon,
   XMarkIcon,
+  CheckIcon,
+  ShoppingCartIcon,
 } from "@heroicons/react/24/solid";
 import { getAuth } from "firebase/auth";
 import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
@@ -20,10 +22,16 @@ export default function NuevaOrden() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [invoice, setInvoice] = useState("no");
   const [isSideMenuVisible, setIsSideMenuVisible] = useState(true);
-  const [products, setProducts] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [activeTab, setActiveTab] = useState("bebidas frias");
+  const [products, setProducts] = useState({
+    "bebidas frias": [],
+    "bebidas calientes": [],
+    postres: [],
+    desayunos: [],
+  });
 
   useEffect(() => {
     const auth = getAuth();
@@ -56,8 +64,23 @@ export default function NuevaOrden() {
           id: doc.id,
           name: doc.data().nombre,
           price: doc.data().precio,
+          type: doc.data().tipo,
         }));
-        setProducts(productsList);
+
+        const organizedProducts = {
+          "bebidas frias": [],
+          "bebidas calientes": [],
+          postres: [],
+          desayunos: [],
+        };
+
+        productsList.forEach((product) => {
+          if (organizedProducts[product.type]) {
+            organizedProducts[product.type].push(product);
+          }
+        });
+
+        setProducts(organizedProducts);
       } catch (error) {
         console.error("Error al obtener productos: ", error);
         alert("No se pudieron cargar los productos. Intenta nuevamente.");
@@ -435,10 +458,10 @@ export default function NuevaOrden() {
 
       {/* Modal para seleccionar productos */}
       {isModalVisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-cafe-oscuro">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-cafe-oscuro">
                 Selecciona Productos
               </h2>
               <button
@@ -448,33 +471,58 @@ export default function NuevaOrden() {
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
-            <div className="max-h-80 overflow-y-auto">
-              <ul className="space-y-2">
-                {products.map((product) => (
-                  <li
-                    key={product.id}
-                    className="flex justify-between items-center border-b border-cafe-claro/20 pb-2"
-                  >
-                    <span className="text-cafe-oscuro">
-                      {product.name} - ${product.price}
-                    </span>
-                    <input
-                      type="checkbox"
-                      checked={selectedProducts.some(
-                        (p) => p.id === product.id
-                      )}
-                      onChange={() => toggleProductSelection(product)}
-                      className="form-checkbox h-5 w-5 text-cafe-intenso rounded focus:ring-cafe-intenso"
-                    />
-                  </li>
-                ))}
-              </ul>
+            <div className="flex space-x-2 p-4 overflow-x-auto bg-cafe-claro/20 justify-center">
+              {Object.keys(products).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setActiveTab(type)}
+                  className={`px-4 py-2 rounded-full transition duration-200 whitespace-nowrap ${
+                    activeTab === type
+                      ? "bg-cafe-oscuro text-white"
+                      : "bg-white text-cafe-oscuro hover:bg-cafe-medio hover:text-white"
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
-            <div className="flex justify-center">
+            <div className="flex-grow overflow-y-auto p-6 bg-cafe-claro/20">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {products[activeTab].map((product) => (
+                  <div
+                    key={product.id}
+                    onClick={() => toggleProductSelection(product)}
+                    className={`p-4 rounded-lg cursor-pointer transition duration-200 ${
+                      selectedProducts.some((p) => p.id === product.id)
+                        ? "bg-cafe-medio text-white shadow-lg"
+                        : "bg-white text-cafe-oscuro hover:bg-cafe-claro hover:shadow-md"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-semibold">{product.name}</span>
+                      {selectedProducts.some((p) => p.id === product.id) && (
+                        <CheckIcon className="h-5 w-5" />
+                      )}
+                    </div>
+                    <span className="text-sm font-bold">
+                      ${product.price.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="border-t border-gray-200 p-6 flex justify-between items-center bg-cafe-claro/10">
+              <div className="flex items-center text-cafe-oscuro">
+                <ShoppingCartIcon className="h-6 w-6 mr-2" />
+                <span className="font-semibold">
+                  Seleccionados: {selectedProducts.length}
+                </span>
+              </div>
               <button
                 onClick={addSelectedProductsToOrder}
-                className="bg-cafe-oscuro text-white px-4 py-2 rounded-lg hover:bg-cafe-intenso transition duration-200"
+                className="bg-cafe-oscuro text-white px-6 py-2 rounded-lg hover:bg-cafe-intenso transition duration-200 flex items-center"
               >
+                <PlusIcon className="h-5 w-5 mr-2" />
                 Agregar Seleccionados
               </button>
             </div>
