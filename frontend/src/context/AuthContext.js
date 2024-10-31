@@ -4,23 +4,26 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
-  const [role, setRole] = useState(null); // Nuevo estado para el rol
+  const [role, setRole] = useState(null);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    setCurrentUser(user);
-    setRole(user?.email === "brenda@gmail.com" ? "gerente" : "mesero"); // Determina el rol
+    if (user) {
+      setCurrentUser(user);
+      setRole(user.email === "brenda@gmail.com" ? "gerente" : "mesero");
+    }
   }, []);
 
   const login = (user) => {
     setCurrentUser(user);
-    setRole(user.email === "brenda@gmail.com" ? "gerente" : "mesero"); // Determina el rol al iniciar sesión
+    const userRole = user.email === "brenda@gmail.com" ? "gerente" : "mesero";
+    setRole(userRole);
     localStorage.setItem("user", JSON.stringify(user));
   };
 
   const logout = () => {
     setCurrentUser(null);
-    setRole(null); // Limpia el rol al cerrar sesión
+    setRole(null);
     localStorage.removeItem("user");
   };
 
@@ -32,6 +35,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 // Hook para usar el contexto
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);

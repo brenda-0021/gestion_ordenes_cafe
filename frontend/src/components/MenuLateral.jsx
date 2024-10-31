@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   HomeIcon,
   ClipboardDocumentIcon,
@@ -14,6 +15,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 const MenuLateral = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -31,15 +34,24 @@ const MenuLateral = () => {
     };
   }, []);
 
+  const handleLogout = async () => {
+    logout();
+    navigate("/login");
+  };
+
   const menuItems = [
-    { name: "Tablero", icon: HomeIcon, path: "/" },
+    { name: "Tablero", icon: HomeIcon, path: "/principal" },
     {
       name: "Crear Nueva Orden",
       icon: ClipboardDocumentIcon,
       path: "/nueva-orden",
     },
-    { name: "Ajustes", icon: Cog6ToothIcon, path: "/settings" },
-    { name: "Cerrar Sesión", icon: ArrowRightOnRectangleIcon, path: "/logout" },
+    { name: "Panel Gerente", icon: Cog6ToothIcon, path: "/dashboard-gerente" },
+    {
+      name: "Cerrar Sesión",
+      icon: ArrowRightOnRectangleIcon,
+      action: handleLogout,
+    },
   ];
 
   const toggleMenu = () => {
@@ -105,32 +117,24 @@ const MenuLateral = () => {
           <ul className="space-y-1">
             {menuItems.map((item) => (
               <li key={item.name}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center px-3 py-3 rounded-lg transition-all duration-200
-                    hover:bg-cafe-medio/20 group relative
-                    ${item.name === "Cerrar Sesión" ? "mt-8" : ""}
-                  `}
-                  onClick={() => isMobile && toggleMobileMenu()}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
-                  <span
-                    className={`ml-3 whitespace-nowrap overflow-hidden transition-opacity duration-200
-                      ${
-                        isCollapsed && !isMobile
-                          ? "opacity-0 w-0"
-                          : "opacity-100"
-                      }
-                    `}
+                {item.path ? (
+                  <Link
+                    to={item.path}
+                    className="flex items-center px-3 py-3 rounded-lg transition-all duration-200 hover:bg-cafe-medio/20"
+                    onClick={() => isMobile && toggleMobileMenu()}
                   >
-                    {item.name}
-                  </span>
-                  {isCollapsed && !isMobile && (
-                    <div className="absolute left-14 px-2 py-1 bg-cafe-oscuro rounded-md invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50">
-                      {item.name}
-                    </div>
-                  )}
-                </Link>
+                    <item.icon className="h-5 w-5 mr-3" />
+                    <span>{item.name}</span>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={item.action}
+                    className="flex items-center px-3 py-3 w-full text-left rounded-lg transition-all duration-200 hover:bg-cafe-medio/20"
+                  >
+                    <item.icon className="h-5 w-5 mr-3" />
+                    <span>{item.name}</span>
+                  </button>
+                )}
               </li>
             ))}
           </ul>

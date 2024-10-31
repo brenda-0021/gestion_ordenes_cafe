@@ -21,7 +21,7 @@ const AppRoutes = () => {
       <Route
         path="/nueva-orden"
         element={
-          <PrivateRoute requiredRole="mesero">
+          <PrivateRoute>
             <NuevaOrden />
           </PrivateRoute>
         }
