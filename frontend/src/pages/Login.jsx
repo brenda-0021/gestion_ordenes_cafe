@@ -81,7 +81,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cafe-suave to-cafe-claro p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cafe-oscuro via-cafe-medio to-cafe-suave p-4">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md transform transition-all duration-300 scale-100 hover:scale-[1.02]">
         <h2 className="text-3xl font-bold mb-8 text-cafe-oscuro text-center">
           {registrando ? "Crear cuenta" : "Bienvenido de nuevo"}

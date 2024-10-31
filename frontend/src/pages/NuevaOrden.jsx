@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { TrashIcon, PlusIcon, MinusIcon } from "@heroicons/react/24/solid";
+import {
+  TrashIcon,
+  PlusIcon,
+  MinusIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 import { getAuth } from "firebase/auth";
 import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
 import { db } from "../credenciales";
@@ -193,11 +198,11 @@ export default function NuevaOrden() {
   const getStatusColor = (status) => {
     switch (status) {
       case "finished":
-        return "bg-gray-300";
+        return "bg-gray-100 text-gray-800";
       case "canceled":
-        return "bg-red-300";
+        return "bg-red-100 text-red-800";
       case "activated":
-        return "bg-green-300";
+        return "bg-green-100 text-green-800";
       default:
         return "";
     }
@@ -205,212 +210,189 @@ export default function NuevaOrden() {
 
   return (
     <div
-      className={`min-h-screen bg-cafe-suave p-4 md:p-8 ${
+      className={`min-h-screen bg-gradient-to-br from-cafe-suave to-cafe-claro p-4 md:p-8 ${
         isSideMenuVisible ? "sm:ml-16 lg:ml-64" : ""
       }`}
     >
-      <div className="mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-cafe-oscuro mb-6">
+      <div className="mx-auto bg-white rounded-xl shadow-lg p-6 space-y-8 max-w-8xl">
+        <h1 className="text-3xl font-bold text-cafe-oscuro mb-6 text-center">
           Nueva Orden
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <label
-              htmlFor="waiterName"
-              className="block text-sm font-medium text-cafe-oscuro"
-            >
-              Mesero
-            </label>
-            <input
-              type="text"
-              id="waiterName"
-              value={waiterName}
-              readOnly
-              className="mt-1 block w-full px-3 py-2 bg-cafe-claro border border-cafe-medio rounded-md text-cafe-oscuro placeholder-cafe-medio focus:outline-none focus:ring-cafe-intenso focus:border-cafe-intenso"
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="waiterName"
+                className="block text-sm font-medium text-cafe-oscuro mb-1"
+              >
+                Mesero
+              </label>
+              <input
+                type="text"
+                id="waiterName"
+                value={waiterName}
+                readOnly
+                className="w-full px-3 py-2 bg-cafe-claro/20 border border-cafe-medio/20 rounded-lg text-cafe-oscuro placeholder-cafe-medio/50 focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:border-transparent transition duration-200"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="tableNumber"
+                className="block text-sm font-medium text-cafe-oscuro mb-1"
+              >
+                Número de mesa
+              </label>
+              <select
+                id="tableNumber"
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+                className="w-full px-3 py-2 bg-cafe-claro/20 border border-cafe-medio/20 rounded-lg text-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:border-transparent transition duration-200"
+              >
+                <option value="">Selecciona una mesa</option>
+                {tableOptions.map((table) => (
+                  <option key={table} value={table}>
+                    {table}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div>
-            <label
-              htmlFor="tableNumber"
-              className="block text-sm font-medium text-cafe-oscuro"
-            >
-              Numero de mesa
-            </label>
-            <select
-              id="tableNumber"
-              value={tableNumber}
-              onChange={(e) => setTableNumber(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-cafe-claro border border-cafe-medio rounded-md text-cafe-oscuro focus:outline-none focus:ring-cafe-intenso focus:border-cafe-intenso"
-            >
-              <option value="">Selecciona una mesa</option>
-              {tableOptions.map((table) => (
-                <option key={table} value={table}>
-                  {table}
-                </option>
-              ))}
-            </select>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-cafe-oscuro mb-1">
+                Fecha y Hora
+              </p>
+              <p className="px-3 py-2 bg-cafe-claro/20 border border-cafe-medio/20 rounded-lg text-cafe-oscuro">
+                {orderDate.toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <label
+                htmlFor="orderStatus"
+                className="block text-sm font-medium text-cafe-oscuro mb-1"
+              >
+                Estado de la Orden
+              </label>
+              <select
+                id="orderStatus"
+                value={orderStatus}
+                onChange={(e) => setOrderStatus(e.target.value)}
+                className={`w-full px-3 py-2 border border-cafe-medio/20 rounded-lg text-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:border-transparent transition duration-200 ${getStatusColor(
+                  orderStatus
+                )}`}
+              >
+                <option value="activated">Activa</option>
+                <option value="finished">Finalizada</option>
+                <option value="canceled">Cancelada</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <div className="mb-6">
-          <p className="text-sm font-medium text-cafe-oscuro">
-            Fecha y Hora: {orderDate.toLocaleString()}
-          </p>
-        </div>
-
-        <div className="mb-6 overflow-x-auto">
-          <h2 className="text-xl font-semibold text-cafe-oscuro mb-2">
-            Productos
-          </h2>
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-cafe-medio text-white text-center">
-                <th className="p-2 w-24">Cantidad</th>
-                <th className="p-2 text-left">Nombre</th>
-                <th className="p-2 text-left">Detalles</th>
-                <th className="p-2 text-left">Precio</th>
-                <th className="p-2 w-16">Borrar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orderItems.map((item, index) => (
-                <tr key={index} className="border-b border-cafe-claro">
-                  <td className="p-2">
-                    <div className="flex items-center justify-between">
-                      <button
-                        onClick={() => adjustQuantity(index, -1)}
-                        className="text-cafe-oscuro hover:text-cafe-intenso"
-                      >
-                        <MinusIcon className="h-4 w-4" />
-                      </button>
-                      <span className="mx-2">{item.quantity}</span>
-                      <button
-                        onClick={() => adjustQuantity(index, 1)}
-                        className="text-cafe-oscuro hover:text-cafe-intenso"
-                      >
-                        <PlusIcon className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                  <td className="p-2">
-                    <input
-                      type="text"
-                      value={item.name}
-                      onChange={(e) =>
-                        updateOrderItem(index, "name", e.target.value)
-                      }
-                      className="w-full px-2 py-1 bg-cafe-claro border border-cafe-medio rounded-md text-cafe-oscuro"
-                    />
-                  </td>
-                  <td className="p-2">
-                    <input
-                      type="text"
-                      value={item.details}
-                      onChange={(e) =>
-                        updateOrderItem(index, "details", e.target.value)
-                      }
-                      className="w-full px-2 py-1 bg-cafe-claro border border-cafe-medio rounded-md text-cafe-oscuro"
-                    />
-                  </td>
-                  <td className="p-2">
-                    <input
-                      type="number"
-                      value={item.price}
-                      onChange={(e) =>
-                        updateOrderItem(
-                          index,
-                          "price",
-                          parseFloat(e.target.value)
-                        )
-                      }
-                      className="w-full px-2 py-1 bg-cafe-claro border border-cafe-medio rounded-md text-cafe-oscuro"
-                    />
-                  </td>
-                  <td className="p-2">
-                    <button
-                      onClick={() => removeOrderItem(index)}
-                      className="flex items-center justify-center w-full text-cafe-oscuro hover:text-cafe-intenso"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="flex justify-between items-center mb-6">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-cafe-oscuro">
+              Productos
+            </h2>
             <button
               onClick={() => setIsModalVisible(true)}
-              className="bg-cafe-oscuro text-white px-4 py-2 rounded-md hover:bg-cafe-intenso"
+              className="bg-cafe-oscuro text-white px-4 py-2 rounded-lg hover:bg-cafe-intenso transition duration-200 flex items-center space-x-2"
             >
-              Agregar Producto
+              <PlusIcon className="h-5 w-5" />
+              <span>Agregar Producto</span>
             </button>
+          </div>
+          <div className="overflow-x-auto rounded-lg border border-cafe-medio/20">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-cafe-suave text-cafe-oscuro text-left">
+                  <th className="p-3 font-semibold">Cantidad</th>
+                  <th className="p-3 font-semibold">Nombre</th>
+                  <th className="p-3 font-semibold">Detalles</th>
+                  <th className="p-3 font-semibold">Precio</th>
+                  <th className="p-3 font-semibold">Tirar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orderItems.map((item, index) => (
+                  <tr key={index} className="border-t border-cafe-claro/20">
+                    <td className="p-3">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => adjustQuantity(index, -1)}
+                          className="text-cafe-oscuro hover:text-cafe-intenso transition duration-200"
+                        >
+                          <MinusIcon className="h-4 w-4" />
+                        </button>
+                        <span className="w-8 text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => adjustQuantity(index, 1)}
+                          className="text-cafe-oscuro hover:text-cafe-intenso transition duration-200"
+                        >
+                          <PlusIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) =>
+                          updateOrderItem(index, "name", e.target.value)
+                        }
+                        className="w-full px-2 py-1 bg-transparent border-b border-cafe-medio/20 focus:border-cafe-intenso focus:outline-none transition duration-200"
+                      />
+                    </td>
+                    <td className="p-3">
+                      <input
+                        type="text"
+                        value={item.details}
+                        onChange={(e) =>
+                          updateOrderItem(index, "details", e.target.value)
+                        }
+                        className="w-full px-2 py-1 bg-transparent border-b border-cafe-medio/20 focus:border-cafe-intenso focus:outline-none transition duration-200"
+                      />
+                    </td>
+                    <td className="p-3">
+                      <input
+                        type="number"
+                        value={item.price}
+                        onChange={(e) =>
+                          updateOrderItem(
+                            index,
+                            "price",
+                            parseFloat(e.target.value)
+                          )
+                        }
+                        className="w-full px-2 py-1 bg-transparent border-b border-cafe-medio/20 focus:border-cafe-intenso focus:outline-none transition duration-200"
+                      />
+                    </td>
+                    <td className="p-3">
+                      <button
+                        onClick={() => removeOrderItem(index)}
+                        className="text-red-500 hover:text-red-700 transition duration-200"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex justify-end">
             <h3 className="text-xl font-semibold text-cafe-oscuro">
               Total: ${calculateTotal()}
             </h3>
           </div>
-          {/* Modal para seleccionar productos */}
-          {isModalVisible && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                <h2 className="text-xl font-bold mb-4">Selecciona Productos</h2>
-                <ul className="space-y-2">
-                  {products.map((product) => (
-                    <li
-                      key={product.id}
-                      className="flex justify-between items-center border-b pb-2"
-                    >
-                      <span>
-                        {product.name} - ${product.price}
-                      </span>
-                      <input
-                        type="checkbox"
-                        checked={selectedProducts.some(
-                          (p) => p.id === product.id
-                        )}
-                        onChange={() => toggleProductSelection(product)}
-                      />
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex justify-center mt-4">
-                  <button
-                    onClick={addSelectedProductsToOrder}
-                    className="bg-cafe-oscuro text-white px-4 py-2 rounded-md hover:bg-cafe-intenso"
-                  >
-                    Agregar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div>
-            <label
-              htmlFor="orderStatus"
-              className="block text-sm font-medium text-cafe-oscuro"
-            >
-              Estado de la Orden
-            </label>
-            <select
-              id="orderStatus"
-              value={orderStatus}
-              onChange={(e) => setOrderStatus(e.target.value)}
-              className={`mt-1 block w-full px-3 py-2 border border-cafe-medio rounded-md text-cafe-oscuro focus:outline-none focus:ring-cafe-intenso focus:border-cafe-intenso ${getStatusColor(
-                orderStatus
-              )}`}
-            >
-              <option value="activated">Activa</option>
-              <option value="finished">Finalizada</option>
-              <option value="canceled">Cancelada</option>
-            </select>
-          </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label
               htmlFor="paymentMethod"
-              className="block text-sm font-medium text-cafe-oscuro"
+              className="block text-sm font-medium text-cafe-oscuro mb-1"
             >
               Método de Pago
             </label>
@@ -418,7 +400,7 @@ export default function NuevaOrden() {
               id="paymentMethod"
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-cafe-claro border border-cafe-medio rounded-md text-cafe-oscuro focus:outline-none focus:ring-cafe-intenso focus:border-cafe-intenso"
+              className="w-full px-3 py-2 bg-cafe-claro/20 border border-cafe-medio/20 rounded-lg text-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:border-transparent transition duration-200"
             >
               <option value="cash">Efectivo</option>
               <option value="card">Tarjeta</option>
@@ -427,7 +409,7 @@ export default function NuevaOrden() {
           <div>
             <label
               htmlFor="invoice"
-              className="block text-sm font-medium text-cafe-oscuro"
+              className="block text-sm font-medium text-cafe-oscuro mb-1"
             >
               Facturada
             </label>
@@ -435,7 +417,7 @@ export default function NuevaOrden() {
               id="invoice"
               value={invoice}
               onChange={(e) => setInvoice(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-cafe-claro border border-cafe-medio rounded-md text-cafe-oscuro focus:outline-none focus:ring-cafe-intenso focus:border-cafe-intenso"
+              className="w-full px-3 py-2 bg-cafe-claro/20 border border-cafe-medio/20 rounded-lg text-cafe-oscuro focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:border-transparent transition duration-200"
             >
               <option value="yes">Si</option>
               <option value="no">No</option>
@@ -445,11 +427,60 @@ export default function NuevaOrden() {
 
         <button
           onClick={saveOrderToFirestore}
-          className="w-full px-4 py-2 bg-cafe-oscuro text-white rounded-md hover:bg-cafe-intenso focus:outline-none focus:ring-2 focus:ring-cafe-medio"
+          className="w-full px-4 py-3 bg-cafe-oscuro text-white rounded-lg hover:bg-cafe-intenso focus:outline-none focus:ring-2 focus:ring-cafe-medio focus:ring-offset-2 transition duration-200 text-lg font-semibold"
         >
           Agregar Orden
         </button>
       </div>
+
+      {/* Modal para seleccionar productos */}
+      {isModalVisible && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-cafe-oscuro">
+                Selecciona Productos
+              </h2>
+              <button
+                onClick={() => setIsModalVisible(false)}
+                className="text-cafe-oscuro hover:text-cafe-intenso transition duration-200"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="max-h-80 overflow-y-auto">
+              <ul className="space-y-2">
+                {products.map((product) => (
+                  <li
+                    key={product.id}
+                    className="flex justify-between items-center border-b border-cafe-claro/20 pb-2"
+                  >
+                    <span className="text-cafe-oscuro">
+                      {product.name} - ${product.price}
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts.some(
+                        (p) => p.id === product.id
+                      )}
+                      onChange={() => toggleProductSelection(product)}
+                      className="form-checkbox h-5 w-5 text-cafe-intenso rounded focus:ring-cafe-intenso"
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex justify-center">
+              <button
+                onClick={addSelectedProductsToOrder}
+                className="bg-cafe-oscuro text-white px-4 py-2 rounded-lg hover:bg-cafe-intenso transition duration-200"
+              >
+                Agregar Seleccionados
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
