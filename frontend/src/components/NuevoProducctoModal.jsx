@@ -18,7 +18,7 @@ const NuevoProductoModal = ({ isOpen, onClose, onAddProduct }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white p-6 rounded-md shadow-lg w-96">
         <h2 className="text-xl font-bold mb-4 text-cafe-oscuro text-center">
           Agregar Producto

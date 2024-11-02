@@ -7,6 +7,8 @@ import {
   onSnapshot,
   doc,
   updateDoc,
+  where,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../credenciales";
 import { Button } from "../components/button";
@@ -44,7 +46,16 @@ export default function Principal() {
   }, []);
 
   useEffect(() => {
-    const q = query(collection(db, "ordenes"));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const q = query(
+      collection(db, "ordenes"),
+      where("fechaHora", ">=", Timestamp.fromDate(today)),
+      where("fechaHora", "<", Timestamp.fromDate(tomorrow))
+    );
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const ordersData = [];
       querySnapshot.forEach((doc) => {
@@ -152,8 +163,8 @@ export default function Principal() {
             Gestión de Ordenes
           </h1>
           <div className="flex gap-2">
-            <span className="hidden md:flex items-center gap-1 text-sm text-cafe-medio">
-              <ClockIcon className="h-4 w-4" />
+            <span className="flex items-center gap-1 text-sm text-cafe-medio">
+              <CalendarIcon className="h-4 w-4" />
               {new Date().toLocaleDateString()}
             </span>
           </div>
