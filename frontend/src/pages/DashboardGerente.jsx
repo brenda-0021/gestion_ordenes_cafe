@@ -5,6 +5,7 @@ import NuevoMeseroModal from "../components/NuevoMeseroModal";
 import NuevoProductoModal from "../components/NuevoProducctoModal";
 import EditarProductoModal from "../components/EditarProductoModal";
 import { db } from "../credenciales";
+import axios from "axios";
 import {
   collection,
   addDoc,
@@ -53,6 +54,7 @@ export default function ManagerDashboard() {
   const [previousReports, setPreviousReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [resumenVentas, setResumenVentas] = useState("");
 
   useEffect(() => {
     const checkSideMenuVisibility = () => {
@@ -127,7 +129,7 @@ export default function ManagerDashboard() {
       let totalOrders = 0;
       let totalSales = 0;
       let canceledOrders = 0;
-      let paymentMethods = { efectivo: 0, tarjeta: 0 };
+      let paymentMethods = { efectivo: 0, tarjeta: 0, cash: 0 };
       let invoicesIssued = 0;
       let salesByWaiter = {};
       let productsSold = {};
@@ -194,14 +196,98 @@ export default function ManagerDashboard() {
         })),
       };
 
-      console.log("Report data:", reportData); // Debug log
+      console.log("Datos del reporte generado:", reportData);
 
-      setDailyReport(reportData);
-
-      await addDoc(collection(db, "reportes"), reportData);
+      const docRef = await addDoc(collection(db, "reportes"), reportData);
       console.log("Reporte guardado exitosamente en Firebase.");
+
+      // Update reportData with the new document ID
+      const reportDataWithId = { ...reportData, id: docRef.id };
+      setDailyReport(reportDataWithId);
+
+      await generarReporte(reportDataWithId);
     } catch (error) {
       console.error("Error al generar el reporte diario:", error);
+    }
+  };
+
+  const generarReporte = async (reportData) => {
+    try {
+      if (!reportData) {
+        console.error("No hay datos para generar el reporte.");
+        return;
+      }
+
+      // Format the data in a more natural language way
+      const reportDataString = `
+      Resumen de ventas del día ${reportData.fecha}:
+      
+      Resumen General:
+      - Total de órdenes finalizadas: ${reportData.ordenesFinalizadas}
+      - Total de órdenes canceladas: ${reportData.ordenesCanceladas}
+      - Ventas totales del día: $${reportData.totalVentas} MXN
+      
+      Métodos de Pago:
+      - Efectivo: ${reportData.metodosPago.efectivo || 0} órdenes
+      - Tarjeta: ${reportData.metodosPago.tarjeta || 0} órdenes
+      - Cash: ${reportData.metodosPago.cash || 0} órdenes
+      
+      Facturas emitidas: ${reportData.facturasEmitidas}
+      
+      Desempeño por Mesero:
+      ${Object.entries(reportData.ventasPorMesero)
+        .map(
+          ([mesero, data]) =>
+            `- ${mesero}: ${data.orders} órdenes, $${data.sales} MXN`
+        )
+        .join("\n")}
+      
+      Productos Más Vendidos:
+      ${reportData.topProductos
+        .map(
+          (product) =>
+            `- ${product.nombre}: ${product.cantidad} unidades, $${product.ventas} MXN`
+        )
+        .join("\n")}
+    `;
+
+      console.log("Enviando datos para generar reporte:", reportDataString);
+
+      const response = await axios.post("http://localhost:5000/api/gemini", {
+        message: `Analiza el siguiente resumen de ventas y genera un informe ejecutivo con observaciones, predicciones y recomendaciones. No repitas la información proporcionada, sino interpreta los datos para ofrecer insights valiosos. Enfócate en tendencias, patrones inusuales, oportunidades de mejora y posibles estrategias para aumentar las ventas. Usa un lenguaje claro y conciso, evitando términos técnicos. El informe debe ser fácilmente comprensible para alguien sin conocimientos de negocios o informática.
+
+    Estructura el informe de la siguiente manera:
+    1. Observaciones clave (3-4 puntos)
+    2. Predicciones a corto plazo (2-3 puntos)
+    3. Recomendaciones para mejorar el rendimiento (3-4 puntos)
+
+    Datos del día:
+    ${reportDataString}`,
+      });
+
+      if (response.data) {
+        const resumenGemini = response.data;
+        setResumenVentas(resumenGemini);
+
+        if (reportData.id) {
+          const reporteRef = doc(db, "reportes", reportData.id);
+          await updateDoc(reporteRef, {
+            resumenGemini: resumenGemini,
+          });
+          console.log("Resumen de Gemini guardado en Firebase");
+        } else {
+          console.error(
+            "No se pudo guardar el resumen en Firebase: ID del reporte no disponible"
+          );
+        }
+      } else {
+        throw new Error("No se recibió respuesta del servidor");
+      }
+    } catch (error) {
+      console.error("Error al generar el reporte:", error);
+      setResumenVentas(
+        "No se pudo generar el resumen automático. Por favor revise los datos manualmente."
+      );
     }
   };
 
@@ -657,6 +743,14 @@ export default function ManagerDashboard() {
                       </tbody>
                     </table>
                   </div>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4">
+                    Resumen de Ventas del Día
+                  </h2>
+                  <p className="text-cafe-medio">
+                    {selectedReport.resumenGemini}
+                  </p>
                 </div>
               </div>
             </div>
