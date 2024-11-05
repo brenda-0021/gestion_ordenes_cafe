@@ -36,8 +36,8 @@ Sigue los siguientes pasos para correr el proyecto en tu entorno local:
 1. Clona el repositorio:
 
    ```bash
-   git clone <URL_DEL_REPOSITORIO>
-   cd <NOMBRE_DEL_REPOSITORIO>
+   git clone https://github.com/brenda-0021/gestion_ordenes_cafe.git
+   cd gestion_ordenes_cafe
    ```
 
 2. Instala las dependencias necesarias para cada módulo:
