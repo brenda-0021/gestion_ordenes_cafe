@@ -66,12 +66,6 @@ Sigue los siguientes pasos para correr el proyecto en tu entorno local:
 
 Puedes acceder a la versión desplegada del proyecto en el siguiente enlace:
 
-[**Aún no se ha desplegado nuestra app**](https://dominio.com)
+[**No pudimos 😭😭😭**](https://dominio.com)
 
 ---
-
-### Acceso mediante Código QR
-
-Próximamente, podrás acceder al proyecto escaneando este código QR:
-
-![Código QR Placeholder](https://via.placeholder.com/150x150.png?text=QR+Code)
