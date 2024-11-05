@@ -66,6 +66,6 @@ Sigue los siguientes pasos para correr el proyecto en tu entorno local:
 
 Puedes acceder a la versión desplegada del proyecto en el siguiente enlace:
 
-[**No pudimos 😭😭😭**](https://dominio.com)
+[**No pudimos 😭😭😭**]()
 
 ---
