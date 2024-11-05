@@ -156,7 +156,7 @@ export default function Principal() {
         isSideMenuVisible ? "sm:ml-16 lg:ml-64" : ""
       }`}
     >
-      <div className="mx-auto bg-white rounded-xl shadow-xl p-6 max-w-8xl">
+      <div className="mx-auto bg-white rounded-xl shadow-lg p-6 max-w-8xl">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-cafe-intenso flex items-center gap-2">
             <ClipboardDocumentListIcon className="h-8 w-8" />

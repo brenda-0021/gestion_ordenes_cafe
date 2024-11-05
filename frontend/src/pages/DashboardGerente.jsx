@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import NuevoMeseroModal from "../components/NuevoMeseroModal";
 import NuevoProductoModal from "../components/NuevoProducctoModal";
 import EditarProductoModal from "../components/EditarProductoModal";
@@ -22,13 +22,8 @@ import {
 import {
   PlusIcon,
   TrashIcon,
-  DocumentTextIcon,
-  UserIcon,
-  CakeIcon,
-  ClipboardDocumentListIcon,
-  PencilSquareIcon,
   ChartBarIcon,
-  CurrencyDollarIcon,
+  CakeIcon,
   XMarkIcon,
   CheckCircleIcon,
   XCircleIcon,
@@ -37,6 +32,10 @@ import {
   ReceiptRefundIcon,
   ShoppingCartIcon,
   SparklesIcon,
+  PencilSquareIcon,
+  UserIcon,
+  CurrencyDollarIcon,
+  CalendarIcon,
 } from "@heroicons/react/24/solid";
 
 export default function ManagerDashboard() {
@@ -70,47 +69,41 @@ export default function ManagerDashboard() {
     };
   }, []);
 
+  const fetchProducts = useCallback(async () => {
+    try {
+      const productsCollection = collection(db, "productos");
+      const productsSnapshot = await getDocs(productsCollection);
+      const productsList = productsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      productsList.sort((a, b) => a.nombre.localeCompare(b.nombre));
+      setProducts(productsList);
+    } catch (error) {
+      console.error("Error al obtener productos: ", error);
+    }
+  }, []);
+
+  const fetchPreviousReports = useCallback(async () => {
+    try {
+      const reportsCollection = collection(db, "reportes");
+      const q = query(reportsCollection, orderBy("fecha", "desc"), limit(10));
+      const reportsSnapshot = await getDocs(q);
+      const reportsList = reportsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPreviousReports(reportsList);
+    } catch (error) {
+      console.error("Error al obtener reportes anteriores: ", error);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const productsCollection = collection(db, "productos");
-        const productsSnapshot = await getDocs(productsCollection);
-        const productsList = productsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          nombre: doc.data().nombre,
-          precio: doc.data().precio,
-          tipo: doc.data().tipo,
-        }));
-
-        productsList.sort((a, b) => a.nombre.localeCompare(b.nombre));
-
-        setProducts(productsList);
-      } catch (error) {
-        console.error("Error al obtener productos: ", error);
-      }
-    };
-
     fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    const fetchPreviousReports = async () => {
-      try {
-        const reportsCollection = collection(db, "reportes");
-        const q = query(reportsCollection, orderBy("fecha", "desc"), limit(10));
-        const reportsSnapshot = await getDocs(q);
-        const reportsList = reportsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setPreviousReports(reportsList);
-      } catch (error) {
-        console.error("Error al obtener reportes anteriores: ", error);
-      }
-    };
-
     fetchPreviousReports();
-  }, []);
+  }, [fetchProducts, fetchPreviousReports]);
 
   const generateDailyReport = async () => {
     const today = new Date();
@@ -130,7 +123,7 @@ export default function ManagerDashboard() {
       let totalOrders = 0;
       let totalSales = 0;
       let canceledOrders = 0;
-      let paymentMethods = { efectivo: 0, tarjeta: 0, cash: 0 };
+      let paymentMethods = { efectivo: 0, tarjeta: 0 };
       let invoicesIssued = 0;
       let salesByWaiter = {};
       let productsSold = {};
@@ -142,8 +135,14 @@ export default function ManagerDashboard() {
         if (order.estado === "finished") {
           totalOrders++;
           totalSales += parseFloat(order.total) || 0;
-          paymentMethods[order.metodoPago] =
-            (paymentMethods[order.metodoPago] || 0) + 1;
+
+          // Update payment method counting
+          if (order.metodoPago === "cash") {
+            paymentMethods.efectivo++;
+          } else if (order.metodoPago === "card") {
+            paymentMethods.tarjeta++;
+          }
+
           if (order.factura === "yes") invoicesIssued++;
 
           if (!salesByWaiter[order.mesero]) {
@@ -169,6 +168,7 @@ export default function ManagerDashboard() {
 
       console.log("Total orders:", totalOrders); // Debug log
       console.log("Total sales:", totalSales); // Debug log
+      console.log("Payment methods:", paymentMethods); // Debug log
 
       const topProducts = Object.entries(productsSold)
         .sort((a, b) => b[1].quantity - a[1].quantity)
@@ -207,6 +207,8 @@ export default function ManagerDashboard() {
       setDailyReport(reportDataWithId);
 
       await generarReporte(reportDataWithId);
+
+      fetchPreviousReports();
     } catch (error) {
       console.error("Error al generar el reporte diario:", error);
     }
@@ -290,14 +292,6 @@ export default function ManagerDashboard() {
         "No se pudo generar el resumen automático. Por favor revise los datos manualmente."
       );
     }
-  };
-
-  const handleAddWaiter = () => {
-    setIsWaiterModalOpen(true);
-  };
-
-  const handleDeleteWaiter = (id) => {
-    setWaiters(waiters.filter((waiter) => waiter.id !== id));
   };
 
   const handleOpenNewProductModal = () => {
@@ -462,7 +456,7 @@ export default function ManagerDashboard() {
             <ChartBarIcon className="h-5 w-5 mr-2" />
             Reportes
           </button>
-          <button
+          {/*<button
             onClick={() => setActiveTab("waiters")}
             className={`mr-4 mb-2 px-6 py-3 rounded-lg flex items-center transition-colors duration-300 ${
               activeTab === "waiters"
@@ -472,7 +466,7 @@ export default function ManagerDashboard() {
           >
             <UserIcon className="h-5 w-5 mr-2" />
             Meseros
-          </button>
+          </button>*/}
           <button
             onClick={() => setActiveTab("products")}
             className={`mr-4 mb-2 px-6 py-3 rounded-lg flex items-center transition-colors duration-300 ${
@@ -488,44 +482,69 @@ export default function ManagerDashboard() {
 
         {activeTab === "reports" && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4 flex items-center">
-              <ChartBarIcon className="h-7 w-7 mr-2 text-cafe-medio" />
-              Reportes
-            </h2>
-            <button
-              onClick={generateDailyReport}
-              className="mb-6 flex items-center px-6 py-3 bg-cafe-medio text-white text-l font-bold rounded-lg hover:bg-cafe-oscuro transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:ring-offset-2"
-            >
-              <SparklesIcon className="h-5 w-5 mr-2" />
-              Generar reporte del día
-            </button>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-semibold text-cafe-oscuro flex items-center">
+                <ChartBarIcon className="h-7 w-7 mr-2 text-cafe-medio" />
+                Reportes
+              </h2>
+              <button
+                onClick={generateDailyReport}
+                className="flex items-center px-6 py-3 bg-cafe-medio text-white font-bold rounded-lg hover:bg-cafe-oscuro transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:ring-offset-2"
+              >
+                <SparklesIcon className="h-5 w-5 mr-2" />
+                Generar reporte del día
+              </button>
+            </div>
             <div className="bg-cafe-claro/30 p-6 rounded-lg shadow-inner">
-              <h3 className="text-xl font-semibold text-cafe-oscuro mb-4">
-                Reportes Anteriores
-              </h3>
-              <ul className="space-y-2">
-                {previousReports.map((report) => (
-                  <li
-                    key={report.id}
-                    className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
-                    onClick={() => handleViewReport(report)}
-                  >
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-cafe-oscuro">
-                        {report.fecha}
-                      </span>
-                      <span className="text-cafe-medio">
-                        Ventas: ${report.totalVentas} MXN
-                      </span>
+              <div className="overflow-y-auto max-h-[400px] pr-4">
+                {previousReports.map((report, index) => (
+                  <div key={report.id}>
+                    <div
+                      className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer mb-4"
+                      onClick={() => handleViewReport(report)}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center">
+                          <CalendarIcon className="h-5 w-5 mr-2 text-cafe-medio" />
+                          <span className="font-medium text-cafe-oscuro">
+                            {report.fecha}
+                          </span>
+                        </div>
+                        <span className="bg-cafe-claro text-cafe-oscuro px-3 py-1 rounded-full text-sm font-semibold">
+                          ${report.totalVentas} MXN
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-sm text-gray-600">
+                        <div className="flex items-center">
+                          <ShoppingCartIcon className="h-4 w-4 mr-1 text-green-500" />
+                          <span>{report.ordenesFinalizadas} órdenes</span>
+                        </div>
+                        <div className="flex items-center">
+                          <UserIcon className="h-4 w-4 mr-1 text-blue-500" />
+                          <span>
+                            {Object.keys(report.ventasPorMesero).length} meseros
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <CurrencyDollarIcon className="h-4 w-4 mr-1 text-yellow-500" />
+                          <span>{report.facturasEmitidas} facturas</span>
+                        </div>
+                      </div>
                     </div>
-                  </li>
+                    {index < previousReports.length - 1 && (
+                      <div className="border-b border-cafe-claro/50 mb-4"></div>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
+              <p className="text-sm text-gray-500 mt-4">
+                Haga clic en un reporte para ver más detalles
+              </p>
             </div>
           </div>
         )}
 
-        {activeTab === "waiters" && (
+        {/*{activeTab === "waiters" && (
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4 flex items-center">
               <UserIcon className="h-7 w-7 mr-2 text-cafe-medio" />
@@ -560,7 +579,7 @@ export default function ManagerDashboard() {
               ))}
             </ul>
           </div>
-        )}
+        )}*/}
 
         {activeTab === "products" && (
           <div className="space-y-6">
@@ -770,7 +789,6 @@ export default function ManagerDashboard() {
           </div>
         </div>
       )}
-
       <NuevoMeseroModal
         isOpen={isWaiterModalOpen}
         onClose={closeWaiterModal}
