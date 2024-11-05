@@ -36,6 +36,7 @@ import {
   BanknotesIcon,
   ReceiptRefundIcon,
   ShoppingCartIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/solid";
 
 export default function ManagerDashboard() {
@@ -427,6 +428,17 @@ export default function ManagerDashboard() {
     setSelectedReport(null);
   };
 
+  const formatResumenGemini = (resumen) => {
+    return resumen
+      .replace(/\*\*/g, "")
+      .split("\n")
+      .map((line, index) => (
+        <p key={index} className="mb-2">
+          {line}
+        </p>
+      ));
+  };
+
   return (
     <div
       className={`min-h-screen bg-gradient-to-br from-cafe-suave to-cafe-claro p-4 md:p-8 ${
@@ -482,9 +494,9 @@ export default function ManagerDashboard() {
             </h2>
             <button
               onClick={generateDailyReport}
-              className="mb-6 flex items-center px-6 py-3 bg-cafe-medio text-white rounded-lg hover:bg-cafe-oscuro transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:ring-offset-2"
+              className="mb-6 flex items-center px-6 py-3 bg-cafe-medio text-white text-l font-bold rounded-lg hover:bg-cafe-oscuro transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-cafe-intenso focus:ring-offset-2"
             >
-              <DocumentTextIcon className="h-5 w-5 mr-2" />
+              <SparklesIcon className="h-5 w-5 mr-2" />
               Generar reporte del día
             </button>
             <div className="bg-cafe-claro/30 p-6 rounded-lg shadow-inner">
@@ -609,6 +621,15 @@ export default function ManagerDashboard() {
               >
                 <XMarkIcon className="h-8 w-8" />
               </button>
+            </div>
+            <div className="bg-cafe-claro/20 p-6 rounded-lg mb-6">
+              <h3 className="text-2xl font-semibold text-cafe-oscuro mb-4 flex items-center">
+                <SparklesIcon className="h-7 w-7 mr-2 text-cafe-medio" />
+                Asistente Gemini
+              </h3>
+              <p className="text-black text-justify">
+                {formatResumenGemini(selectedReport.resumenGemini)}
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
@@ -743,14 +764,6 @@ export default function ManagerDashboard() {
                       </tbody>
                     </table>
                   </div>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-semibold text-cafe-oscuro mb-4">
-                    Resumen de Ventas del Día
-                  </h2>
-                  <p className="text-cafe-medio">
-                    {selectedReport.resumenGemini}
-                  </p>
                 </div>
               </div>
             </div>
