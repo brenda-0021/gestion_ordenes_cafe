@@ -26,7 +26,7 @@ El sistema incluye un módulo de **Inteligencia Artificial (IA)** para mejorar l
 
 - **Frontend**: [React.js](https://reactjs.org) para la construcción de la interfaz de usuario dinámica y responsiva.
 - **Backend**: [Node.js](https://nodejs.org) y [Express](https://expressjs.com) para la lógica del servidor.
-- **Base de Datos**: [MySQL](https://www.mysql.com) para la gestión de las órdenes y ventas.
+- **Base de Datos**: [Firebase](https://firebase.google.com/?hl=es-419) para la gestión de las órdenes y ventas y el Login.
 - **Inteligencia Artificial**: [Gemini](https://gemini.google.com/?hl=es) para la generación de analisis y predicciones de ventas.
 
 ## Instalación y Configuración
