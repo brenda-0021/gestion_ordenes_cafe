@@ -22,6 +22,60 @@ El sistema incluye un módulo de **Inteligencia Artificial (IA)** para mejorar l
 - **Resumen Creativo de Ventas**: Utilizando procesamiento de lenguaje natural (NLP), la IA genera resúmenes creativos y atractivos de las ventas del día, resaltando los productos más populares y peculairidades del desempeño de los empleados.
 - **Análisis Predictivo**: Predice los productos que podrían ser más populares en función de los datos históricos de ventas.
 
+## Demostración del Producto
+
+A continuación, te presentamos un tour visual de las principales interfaces de la aplicación, mostrando sus funcionalidades y características clave.
+
+1. **Inicio de Sesión**
+
+   - Acceso seguro para el personal de la cafetería.
+   - ![Inicio de Sesión](./images/login.png)
+
+2. **Panel de Órdenes Activas**
+
+   - Vista general de todas las órdenes activas, canceladas o finalizadas.
+   - Permite gestionar fácilmente el flujo de trabajo.
+   - ![Panel de Órdenes](./images/tablero.png)
+
+3. **Nueva Orden**
+
+   - Interfaz intuitiva para añadir una nueva orden.
+   - Acepta detalles del cliente y selecciona productos.
+   - ![Nueva Orden](./images/nuevaorden.png)
+
+4. **Detalles de una Orden**
+
+   - Modal que muestra los detalles específicos de una orden realizada, facilitando la revisión antes de finalizarla.
+   - ![Detalles de la Orden](./images/detallesorden.png)
+
+5. **Gestión de Productos**
+
+   - Permite agregar o editar productos en el sistema, optimizando la gestión del menú de la cafetería.
+   - ![Gestión de Productos](./images/modalproducto.png)
+
+6. **Lista de Productos**
+
+   - Visualización rápida de todos los productos disponibles.
+   - Facilita la organización y consulta de los productos en el menú.
+   - ![Lista de Productos](./images/listaproductos.png)
+
+7. **Resumen de Ventas**
+
+   - Estadísticas generales de ventas diarias y semanales.
+   - Datos sobre los métodos de pago y rendimiento de productos.
+   - ![Resumen de Ventas](./images/resumenventas.png)
+
+8. **Resumen Inteligente con GEMINI IA**
+
+   - La inteligencia artificial genera un resumen creativo de ventas con observaciones clave.
+   - Proporciona insights sobre el desempeño del día.
+   - ![Resumen GEMINI IA](./images/resumenGEMINI.png)
+
+9. **Reportes Generales**
+   - Interfaz para consultar reportes de ventas y otras métricas clave.
+   - Aumenta la capacidad de toma de decisiones mediante información detallada.
+   - ![Lista de Reportes](./images/listareportes.png)
+
 ## Tecnologías Utilizadas
 
 - **Frontend**: [React.js](https://reactjs.org) para la construcción de la interfaz de usuario dinámica y responsiva.
